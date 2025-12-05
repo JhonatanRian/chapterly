@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -15,6 +16,11 @@ from .serializers import (
 User = get_user_model()
 
 
+@extend_schema(
+    tags=["auth"],
+    summary="Registrar usuário",
+    description="Registra um novo usuário e retorna tokens JWT",
+)
 class RegisterView(generics.CreateAPIView):
     """
     POST /api/auth/register/
@@ -44,6 +50,11 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+@extend_schema(
+    tags=["auth"],
+    summary="Login",
+    description="Autentica um usuário e retorna tokens JWT",
+)
 class LoginView(APIView):
     """
     POST /api/auth/login/
@@ -72,6 +83,11 @@ class LoginView(APIView):
         )
 
 
+@extend_schema(
+    tags=["auth"],
+    summary="Perfil do usuário",
+    description="Obtém ou atualiza o perfil do usuário autenticado",
+)
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     GET /api/auth/profile/
@@ -89,6 +105,11 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+@extend_schema(
+    tags=["auth"],
+    summary="Estatísticas do usuário",
+    description="Retorna estatísticas detalhadas do usuário autenticado",
+)
 class UserStatsView(APIView):
     """
     GET /api/auth/stats/
@@ -140,6 +161,11 @@ class UserStatsView(APIView):
         return Response(stats)
 
 
+@extend_schema(
+    tags=["auth"],
+    summary="Alterar senha",
+    description="Altera a senha do usuário autenticado",
+)
 class ChangePasswordView(APIView):
     """
     POST /api/auth/change-password/
@@ -160,6 +186,11 @@ class ChangePasswordView(APIView):
         )
 
 
+@extend_schema(
+    tags=["auth"],
+    summary="Logout",
+    description="Faz logout do usuário e adiciona o refresh token à blacklist",
+)
 class LogoutView(APIView):
     """
     POST /api/auth/logout/

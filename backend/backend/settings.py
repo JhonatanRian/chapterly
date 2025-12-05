@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
+    "django_filters",
+    "drf_spectacular",
     # Local apps
     "core",
     "talks",
@@ -173,9 +175,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 12,
     "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # JWT Configuration
@@ -203,3 +207,23 @@ COMPANY_NAME = env("COMPANY_NAME", default="Chapterly")
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+# DRF Spectacular Settings (OpenAPI/Swagger)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Chapterly API",
+    "DESCRIPTION": "API para gerenciamento de apresentações em chapters de backend",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": "/api/",
+    "SERVERS": [
+        {"url": "http://localhost:8000", "description": "Development server"},
+    ],
+    "TAGS": [
+        {"name": "auth", "description": "Autenticação e gerenciamento de usuários"},
+        {"name": "ideas", "description": "Gerenciamento de ideias de apresentação"},
+        {"name": "tags", "description": "Tags para categorização"},
+        {"name": "comments", "description": "Comentários em ideias"},
+        {"name": "notifications", "description": "Notificações do usuário"},
+    ],
+}

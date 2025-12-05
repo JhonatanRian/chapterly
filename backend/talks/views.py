@@ -1,10 +1,12 @@
 from django.db.models import Count, Q
 from django.utils import timezone
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from .filters import IdeaFilter
 from .models import Comment, Idea, Notification, Tag, Vote
 from .permissions import IsOwner, IsOwnerOrReadOnly, IsPresenterOrOwnerOrAdmin
 from .serializers import (
@@ -17,6 +19,7 @@ from .serializers import (
 )
 
 
+@extend_schema(tags=["tags"])
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet para tags (apenas leitura)
@@ -29,6 +32,33 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
+@extend_schema(tags=["ideas"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Listar ideias",
+        description="Lista todas as ideias com paginação e filtros avançados",
+    ),
+    create=extend_schema(
+        summary="Criar ideia",
+        description="Cria uma nova ideia de apresentação",
+    ),
+    retrieve=extend_schema(
+        summary="Detalhes da ideia",
+        description="Retorna detalhes completos de uma ideia",
+    ),
+    update=extend_schema(
+        summary="Atualizar ideia",
+        description="Atualiza completamente uma ideia (apenas autor)",
+    ),
+    partial_update=extend_schema(
+        summary="Atualizar parcialmente",
+        description="Atualiza parcialmente uma ideia (apenas autor)",
+    ),
+    destroy=extend_schema(
+        summary="Deletar ideia",
+        description="Deleta uma ideia (apenas autor)",
+    ),
+)
 class IdeaViewSet(viewsets.ModelViewSet):
     """
     ViewSet completo para ideias
@@ -41,8 +71,8 @@ class IdeaViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    filterset_fields = ["status", "prioridade", "autor", "apresentador"]
-    search_fields = ["titulo", "descricao", "autor__username"]
+    filterset_class = IdeaFilter
+    search_fields = ["titulo", "descricao", "conteudo"]
     ordering_fields = ["created_at", "data_agendada", "vote_count"]
     ordering = ["-created_at"]
 
@@ -57,23 +87,6 @@ class IdeaViewSet(viewsets.ModelViewSet):
 
         # Anota com contagem de votos para poder ordenar
         queryset = queryset.annotate(vote_count=Count("votos"))
-
-        # Filtros adicionais via query params
-        status_filter = self.request.query_params.get("status", None)
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-
-        tags_filter = self.request.query_params.get("tags", None)
-        if tags_filter:
-            tag_ids = tags_filter.split(",")
-            queryset = queryset.filter(tags__id__in=tag_ids).distinct()
-
-        # Filtro: apenas ideias que precisam de apresentador
-        precisa_apresentador = self.request.query_params.get(
-            "precisa_apresentador", None
-        )
-        if precisa_apresentador and precisa_apresentador.lower() == "true":
-            queryset = queryset.filter(apresentador__isnull=True)
 
         return queryset
 
@@ -93,6 +106,15 @@ class IdeaViewSet(viewsets.ModelViewSet):
         """
         serializer.save(autor=self.request.user)
 
+    @extend_schema(
+        summary="Votar em ideia",
+        description="Toggle voto: adiciona se não votou, remove se já votou",
+        request=None,
+        responses={
+            200: {"description": "Voto removido"},
+            201: {"description": "Voto adicionado"},
+        },
+    )
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def vote(self, request, pk=None):
         """
@@ -127,6 +149,11 @@ class IdeaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED,
             )
 
+    @extend_schema(
+        summary="Voluntariar-se",
+        description="Inscreve-se para apresentar a ideia",
+        request=None,
+    )
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def volunteer(self, request, pk=None):
         """
@@ -161,6 +188,10 @@ class IdeaViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(
+        summary="Remover apresentador",
+        description="Remove-se como apresentador (ou remove outro se for admin/autor)",
+    )
     @action(detail=True, methods=["delete"], permission_classes=[IsAuthenticated])
     def unvolunteer(self, request, pk=None):
         """
@@ -196,6 +227,11 @@ class IdeaViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(
+        summary="Próximas apresentações",
+        description="Retorna as próximas 5 apresentações agendadas",
+        responses={200: IdeaListSerializer(many=True)},
+    )
     @action(detail=False, methods=["get"])
     def upcoming(self, request):
         """
@@ -214,6 +250,11 @@ class IdeaViewSet(viewsets.ModelViewSet):
         )
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Timeline de apresentações",
+        description="Retorna todas as apresentações agendadas, ordenadas por data",
+        responses={200: IdeaListSerializer(many=True)},
+    )
     @action(detail=False, methods=["get"])
     def timeline(self, request):
         """
@@ -232,6 +273,10 @@ class IdeaViewSet(viewsets.ModelViewSet):
         )
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Estatísticas gerais",
+        description="Retorna estatísticas gerais do sistema de ideias",
+    )
     @action(detail=False, methods=["get"])
     def stats(self, request):
         """
@@ -257,6 +302,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
         return Response(stats)
 
 
+@extend_schema(tags=["comments"])
 class CommentViewSet(viewsets.ModelViewSet):
     """
     ViewSet para comentários
@@ -268,6 +314,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_fields = ["idea", "user", "parent"]
 
     def get_queryset(self):
         """
@@ -309,6 +356,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
+@extend_schema(tags=["notifications"])
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet para notificações (apenas leitura)
@@ -318,6 +366,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
+    filterset_fields = ["tipo", "lido"]
 
     def get_queryset(self):
         """
@@ -329,6 +378,10 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-created_at")
         )
 
+    @extend_schema(
+        summary="Notificações não lidas",
+        description="Retorna apenas notificações não lidas do usuário",
+    )
     @action(detail=False, methods=["get"])
     def unread(self, request):
         """
@@ -339,6 +392,11 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(unread_notifications, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Marcar como lida",
+        description="Marca uma notificação específica como lida",
+        request=None,
+    )
     @action(detail=True, methods=["patch"])
     def mark_read(self, request, pk=None):
         """
@@ -350,6 +408,11 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         notification.save()
         return Response({"detail": "Notificação marcada como lida."})
 
+    @extend_schema(
+        summary="Marcar todas como lidas",
+        description="Marca todas as notificações do usuário como lidas",
+        request=None,
+    )
     @action(detail=False, methods=["post"])
     def mark_all_read(self, request):
         """
