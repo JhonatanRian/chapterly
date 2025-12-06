@@ -1,5 +1,11 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "@/providers/QueryProvider";
@@ -24,9 +30,18 @@ import {
 /**
  * Componente que gerencia a sessão do usuário
  * Verifica expiração de token, tenta refresh automático, e sincroniza entre abas
+ * IMPORTANTE: Só roda em rotas protegidas (não em /login ou /register)
  */
 function SessionManager() {
-  useSessionManager();
+  const location = useLocation();
+  const isPublicRoute =
+    location.pathname === "/login" || location.pathname === "/register";
+
+  // Só ativar session manager se NÃO estiver em rota pública
+  if (!isPublicRoute) {
+    useSessionManager();
+  }
+
   return null;
 }
 
@@ -54,9 +69,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        {/* Gerenciador de sessão global */}
-        <SessionManager />
-
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -155,7 +167,10 @@ function App() {
           />
         </Routes>
 
-        {/* Session expired modal - dentro do Router */}
+        {/* Gerenciador de sessão - dentro do Router para ter acesso ao location */}
+        <SessionManager />
+
+        {/* Session expired modal */}
         <SessionExpiredModal />
       </BrowserRouter>
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { toast } from "sonner";
 import { queryClient } from "@/providers/QueryProvider";
@@ -14,6 +15,9 @@ const SESSION_CHECK_INTERVAL = 60 * 1000; // Verificar a cada 1 minuto
 const WARNING_TIME = 5 * 60 * 1000; // Avisar 5 minutos antes de expirar
 const REFRESH_THRESHOLD = 10 * 60 * 1000; // Tentar refresh 10 minutos antes
 
+// Páginas públicas onde o session manager não deve rodar
+const PUBLIC_ROUTES = ["/login", "/register"];
+
 // BroadcastChannel para sincronizar entre abas
 const authChannel =
   typeof BroadcastChannel !== "undefined"
@@ -21,10 +25,18 @@ const authChannel =
     : null;
 
 export function useSessionManager() {
+  const location = useLocation();
   const { token, refreshAccessToken, logout, isAuthenticated } = useAuthStore();
   const checkIntervalRef = useRef<number | undefined>(undefined);
   const hasShownWarningRef = useRef(false);
   const isRefreshingRef = useRef(false);
+
+  /**
+   * Verifica se estamos em uma rota pública
+   */
+  const isPublicRoute = useCallback(() => {
+    return PUBLIC_ROUTES.some((route) => location.pathname.startsWith(route));
+  }, [location.pathname]);
 
   /**
    * Decodifica o token JWT e retorna o payload
@@ -96,24 +108,18 @@ export function useSessionManager() {
   }, [refreshAccessToken]);
 
   /**
-   * Trata sessão expirada
+   * Trata sessão expirada - SIMPLIFICADO para evitar loops
    */
-  const handleSessionExpired = useCallback(async () => {
+  const handleSessionExpired = useCallback(() => {
+    console.log("🔴 Sessão expirada detectada");
+
     // Limpar cache do React Query
     queryClient.clear();
 
-    // Fazer logout
-    await logout();
+    // Fazer logout (que vai limpar tudo e notificar outras abas)
+    logout();
 
-    // Notificar outras abas
-    authChannel?.postMessage({ type: "LOGOUT" });
-
-    // Mostrar toast
-    toast.error("Sua sessão expirou. Por favor, faça login novamente.", {
-      duration: 5000,
-    });
-
-    // Disparar evento customizado para o modal
+    // Disparar evento customizado para o modal aparecer
     window.dispatchEvent(new CustomEvent("session-expired"));
   }, [logout]);
 
@@ -121,6 +127,12 @@ export function useSessionManager() {
    * Verifica o estado da sessão
    */
   const checkSession = useCallback(() => {
+    // CRÍTICO: Não verificar se estiver em rota pública
+    if (isPublicRoute()) {
+      return;
+    }
+
+    // Não verificar se não estiver autenticado
     if (!token || !isAuthenticated) {
       return;
     }
@@ -159,6 +171,7 @@ export function useSessionManager() {
       hasShownWarningRef.current = true;
     }
   }, [
+    isPublicRoute,
     token,
     isAuthenticated,
     isTokenValid,
@@ -178,20 +191,22 @@ export function useSessionManager() {
 
       switch (type) {
         case "LOGOUT":
-          // Outra aba fez logout, fazer logout aqui também
+          // Outra aba fez logout
+          console.log("🔄 Logout detectado em outra aba");
           logout();
           queryClient.clear();
-          window.dispatchEvent(new CustomEvent("session-expired"));
           break;
 
         case "LOGIN":
           // Outra aba fez login, recarregar a página para atualizar
+          console.log("🔄 Login detectado em outra aba");
           window.location.reload();
           break;
 
         case "TOKEN_REFRESHED":
           // Outra aba renovou o token
           // O Zustand persist já vai sincronizar via localStorage
+          console.log("🔄 Token renovado em outra aba");
           break;
 
         default:
@@ -210,8 +225,17 @@ export function useSessionManager() {
    * Inicia verificação periódica da sessão
    */
   useEffect(() => {
+    // CRÍTICO: Limpar intervalo e sair se estiver em rota pública
+    if (isPublicRoute()) {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+        checkIntervalRef.current = undefined;
+      }
+      return;
+    }
+
+    // Limpar intervalo se não estiver autenticado
     if (!isAuthenticated || !token) {
-      // Limpar intervalo se não estiver autenticado
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
         checkIntervalRef.current = undefined;
@@ -233,15 +257,17 @@ export function useSessionManager() {
         clearInterval(checkIntervalRef.current);
       }
     };
-  }, [isAuthenticated, token, checkSession]);
+  }, [isAuthenticated, token, checkSession, isPublicRoute]);
 
   /**
    * Verificar sessão quando a aba ganha foco
    */
   useEffect(() => {
     const handleVisibilityChange = () => {
+      // Não verificar em rotas públicas
+      if (isPublicRoute()) return;
+
       if (document.visibilityState === "visible" && isAuthenticated) {
-        // Quando o usuário volta para a aba, verificar a sessão
         checkSession();
       }
     };
@@ -251,13 +277,16 @@ export function useSessionManager() {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isAuthenticated, checkSession]);
+  }, [isAuthenticated, checkSession, isPublicRoute]);
 
   /**
    * Verificar sessão quando a janela ganha foco
    */
   useEffect(() => {
     const handleFocus = () => {
+      // Não verificar em rotas públicas
+      if (isPublicRoute()) return;
+
       if (isAuthenticated) {
         checkSession();
       }
@@ -268,7 +297,7 @@ export function useSessionManager() {
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
-  }, [isAuthenticated, checkSession]);
+  }, [isAuthenticated, checkSession, isPublicRoute]);
 
   /**
    * Detectar mudanças no localStorage (login/logout em outra aba)
@@ -281,10 +310,9 @@ export function useSessionManager() {
         !event.newValue &&
         isAuthenticated
       ) {
-        console.log("Token removido em outra aba, fazendo logout...");
+        console.log("🔄 Token removido em outra aba, fazendo logout...");
         logout();
         queryClient.clear();
-        window.dispatchEvent(new CustomEvent("session-expired"));
       }
 
       // Se um novo token foi adicionado em outra aba
@@ -293,7 +321,7 @@ export function useSessionManager() {
         event.newValue &&
         !isAuthenticated
       ) {
-        console.log("Token adicionado em outra aba, recarregando...");
+        console.log("🔄 Token adicionado em outra aba, recarregando...");
         window.location.reload();
       }
     };
@@ -304,6 +332,14 @@ export function useSessionManager() {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, [isAuthenticated, logout]);
+
+  /**
+   * Limpar flags quando mudar de rota
+   */
+  useEffect(() => {
+    // Reset warning flag ao mudar de página
+    hasShownWarningRef.current = false;
+  }, [location.pathname]);
 
   return {
     checkSession,

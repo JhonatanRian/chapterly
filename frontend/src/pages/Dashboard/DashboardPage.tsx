@@ -91,7 +91,7 @@ export function DashboardPage() {
                     />
                   </svg>
                 }
-                description={`${userStats?.ideias_criadas || 0} suas`}
+                description="Cadastradas no sistema"
                 onClick={() => navigate("/ideas")}
               />
             </AnimatedGridItem>
@@ -146,7 +146,7 @@ export function DashboardPage() {
             <AnimatedGridItem>
               <StatsCard
                 title="Apresentações"
-                value={userStats?.apresentacoes || 0}
+                value={stats?.concluidas || 0}
                 icon={
                   <svg
                     className="w-6 h-6"
@@ -158,11 +158,11 @@ export function DashboardPage() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                 }
-                description={`${userStats?.apresentacoes_por_status?.agendadas || 0} agendadas`}
+                description="Já realizadas"
               />
             </AnimatedGridItem>
           </AnimatedGrid>

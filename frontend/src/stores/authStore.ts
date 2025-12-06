@@ -67,23 +67,31 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
-        set({ isLoading: true });
-        try {
-          await authService.logout();
-        } catch (error) {
-          console.error("Erro ao fazer logout:", error);
-        } finally {
-          set({
-            user: null,
-            token: null,
-            refreshToken: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
+        // Tentar chamar o backend PRIMEIRO (mas não bloquear)
+        const logoutPromise = authService.logout().catch((error) => {
+          // Ignorar erros do backend - o importante é limpar o frontend
+          console.warn("Backend logout falhou (isso é ok):", error);
+        });
 
-          // Notificar outras abas sobre o logout
-          authChannel?.postMessage({ type: "LOGOUT" });
-        }
+        // Limpar estado local IMEDIATAMENTE (síncrono)
+        set({
+          user: null,
+          token: null,
+          refreshToken: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+
+        // Limpar localStorage manualmente (zustand persist pode demorar)
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+
+        // Notificar outras abas sobre o logout
+        authChannel?.postMessage({ type: "LOGOUT" });
+
+        // Aguardar logout do backend (sem bloquear a UI)
+        await logoutPromise;
       },
 
       setUser: (user: UserProfile) => {

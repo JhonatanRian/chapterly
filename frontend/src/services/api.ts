@@ -1,6 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { API_BASE_URL, STORAGE_KEYS, ENDPOINTS } from "../utils/constants";
-import { toast } from "sonner";
 
 // Criar instância do axios
 export const api = axios.create({
@@ -165,26 +164,19 @@ api.interceptors.response.use(
 
 /**
  * Trata sessão expirada de forma suave (sem reload forçado)
+ * SIMPLIFICADO: apenas limpa tokens e dispara evento - não faz logout nem toast
  */
 function handleSessionExpired() {
-  // Limpar tokens
+  console.log("🔴 API: Sessão expirada detectada");
+
+  // Limpar tokens localmente (síncrono e rápido)
   localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
   localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
   localStorage.removeItem(STORAGE_KEYS.USER);
 
-  // Mostrar toast informativo
-  toast.error("Sua sessão expirou. Por favor, faça login novamente.", {
-    duration: 5000,
-    id: "session-expired", // Prevenir toasts duplicados
-  });
-
-  // Redirecionar suavemente (sem reload)
-  // O ProtectedRoute vai lidar com isso ao detectar isAuthenticated = false
-  // Usar timeout para dar tempo do toast aparecer
-  setTimeout(() => {
-    // Dispatch evento customizado para o hook de sessão lidar
-    window.dispatchEvent(new CustomEvent("session-expired"));
-  }, 500);
+  // Dispatch evento customizado - o useSessionManager vai lidar com o resto
+  // (logout, toast, modal, etc)
+  window.dispatchEvent(new CustomEvent("session-expired"));
 }
 
 // Helper para extrair mensagem de erro da API
