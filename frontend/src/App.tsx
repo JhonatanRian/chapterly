@@ -1,9 +1,13 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "@/providers/QueryProvider";
 import { Toaster } from "@/components";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { SessionExpiredModal } from "@/components/common/SessionExpiredModal";
+import { useSessionManager } from "@/hooks/useSessionManager";
+import { cleanInvalidTokens } from "@/utils/tokenValidation";
 import {
   LoginPage,
   RegisterPage,
@@ -16,10 +20,27 @@ import {
   TimelinePage,
 } from "@/pages";
 
+/**
+ * Componente que gerencia a sessão do usuário
+ * Verifica expiração de token, tenta refresh automático, e sincroniza entre abas
+ */
+function SessionManager() {
+  useSessionManager();
+  return null;
+}
+
 function App() {
+  // Limpar tokens inválidos na inicialização
+  useEffect(() => {
+    cleanInvalidTokens();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        {/* Gerenciador de sessão global */}
+        <SessionManager />
+
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -117,6 +138,9 @@ function App() {
             }
           />
         </Routes>
+
+        {/* Session expired modal - dentro do Router */}
+        <SessionExpiredModal />
       </BrowserRouter>
 
       {/* Toast notifications */}

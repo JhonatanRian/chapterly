@@ -16,6 +16,7 @@ import {
   Loading,
   ConfirmModal,
 } from "@/components";
+import { AnimatedPage } from "@/components/animations";
 import { ideasService } from "@/services/ideas.service";
 import { handleApiError } from "@/utils/errorHandler";
 import {
@@ -211,240 +212,244 @@ export function IdeaFormPage() {
 
   return (
     <MainLayout>
-      {/* Header */}
-      <div className="mb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <AnimatedPage>
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <span>Voltar</span>
+          </button>
+
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            {isEditMode ? "Editar Ideia" : "Nova Ideia"}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {isEditMode
+              ? "Atualize as informações da sua ideia"
+              : "Compartilhe sua ideia para a próxima apresentação"}
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl">
+          <div className="space-y-6">
+            {/* Title */}
+            <Input
+              label="Título"
+              placeholder="Digite um título chamativo"
+              {...register("titulo")}
+              error={errors.titulo?.message}
+              disabled={isMutating}
+              required
             />
-          </svg>
-          <span>Voltar</span>
-        </button>
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {isEditMode ? "Editar Ideia" : "Nova Ideia"}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          {isEditMode
-            ? "Atualize as informações da sua ideia"
-            : "Compartilhe sua ideia para a próxima apresentação"}
-        </p>
-      </div>
+            {/* Description */}
+            <Textarea
+              label="Descrição Curta"
+              placeholder="Resumo em poucas palavras (aparece nos cards)"
+              rows={3}
+              {...register("descricao")}
+              error={errors.descricao?.message}
+              disabled={isMutating}
+              required
+            />
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl">
-        <div className="space-y-6">
-          {/* Title */}
-          <Input
-            label="Título"
-            placeholder="Digite um título chamativo"
-            {...register("titulo")}
-            error={errors.titulo?.message}
-            disabled={isMutating}
-            required
-          />
-
-          {/* Description */}
-          <Textarea
-            label="Descrição Curta"
-            placeholder="Resumo em poucas palavras (aparece nos cards)"
-            rows={3}
-            {...register("descricao")}
-            error={errors.descricao?.message}
-            disabled={isMutating}
-            required
-          />
-
-          {/* Content (Rich Text) */}
-          <Controller
-            name="conteudo"
-            control={control}
-            render={({ field }) => (
-              <RichTextEditor
-                label="Conteúdo Completo"
-                placeholder="Descreva sua ideia em detalhes..."
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.conteudo?.message}
-                disabled={isMutating}
-                height={500}
-              />
-            )}
-          />
-
-          {/* Image Upload */}
-          <Controller
-            name="imagem"
-            control={control}
-            render={({ field }) => (
-              <ImageUpload
-                label="Imagem de Capa (opcional)"
-                value={field.value || imagePreview}
-                onChange={(file) => {
-                  field.onChange(file);
-                  if (file) {
-                    setImagePreview(URL.createObjectURL(file));
-                  }
-                }}
-                onError={(error) => toast.error(error)}
-                disabled={isMutating}
-                maxSizeMB={5}
-              />
-            )}
-          />
-
-          {/* Tags */}
-          <Controller
-            name="tags"
-            control={control}
-            render={({ field }) => (
-              <TagSelector
-                label="Tags"
-                selectedTags={field.value}
-                onChange={field.onChange}
-                error={errors.tags?.message}
-                disabled={isMutating}
-              />
-            )}
-          />
-
-          {/* Priority */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Prioridade <span className="text-red-500">*</span>
-            </label>
+            {/* Content (Rich Text) */}
             <Controller
-              name="prioridade"
+              name="conteudo"
               control={control}
               render={({ field }) => (
-                <div className="flex gap-4">
-                  {(["baixa", "media", "alta"] as IdeaPriority[]).map(
-                    (priority) => (
-                      <label
-                        key={priority}
-                        className={`flex-1 cursor-pointer ${isMutating ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        <input
-                          type="radio"
-                          value={priority}
-                          checked={field.value === priority}
-                          onChange={() => field.onChange(priority)}
-                          disabled={isMutating}
-                          className="sr-only"
-                        />
-                        <div
-                          className={`p-4 border-2 rounded-lg text-center transition-all ${
-                            field.value === priority
-                              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30"
-                              : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
-                          }`}
-                        >
-                          <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                            {priority}
-                          </div>
-                        </div>
-                      </label>
-                    ),
-                  )}
-                </div>
+                <RichTextEditor
+                  label="Conteúdo Completo"
+                  placeholder="Descreva sua ideia em detalhes..."
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.conteudo?.message}
+                  disabled={isMutating}
+                  height={500}
+                />
               )}
             />
-            {errors.prioridade && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                {errors.prioridade.message}
-              </p>
-            )}
-          </div>
 
-          {/* Want to present */}
-          {!isEditMode && (
-            <div className="flex items-start gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
-              <input
-                type="checkbox"
-                id="quero_apresentar"
-                {...register("quero_apresentar")}
-                disabled={isMutating}
-                className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              />
-              <label
-                htmlFor="quero_apresentar"
-                className="flex-1 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
-              >
-                <span className="font-medium">Quero apresentar esta ideia</span>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  Marque esta opção se você deseja ser o apresentador desta
-                  ideia
-                </p>
-              </label>
-            </div>
-          )}
+            {/* Image Upload */}
+            <Controller
+              name="imagem"
+              control={control}
+              render={({ field }) => (
+                <ImageUpload
+                  label="Imagem de Capa (opcional)"
+                  value={field.value || imagePreview}
+                  onChange={(file) => {
+                    field.onChange(file);
+                    if (file) {
+                      setImagePreview(URL.createObjectURL(file));
+                    }
+                  }}
+                  onError={(error) => toast.error(error)}
+                  disabled={isMutating}
+                  maxSizeMB={5}
+                />
+              )}
+            />
 
-          {/* Actions */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+            {/* Tags */}
+            <Controller
+              name="tags"
+              control={control}
+              render={({ field }) => (
+                <TagSelector
+                  label="Tags"
+                  selectedTags={field.value}
+                  onChange={field.onChange}
+                  error={errors.tags?.message}
+                  disabled={isMutating}
+                />
+              )}
+            />
+
+            {/* Priority */}
             <div>
-              {isEditMode && (
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Prioridade <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                name="prioridade"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex gap-4">
+                    {(["baixa", "media", "alta"] as IdeaPriority[]).map(
+                      (priority) => (
+                        <label
+                          key={priority}
+                          className={`flex-1 cursor-pointer ${isMutating ? "opacity-50 cursor-not-allowed" : ""}`}
+                        >
+                          <input
+                            type="radio"
+                            value={priority}
+                            checked={field.value === priority}
+                            onChange={() => field.onChange(priority)}
+                            disabled={isMutating}
+                            className="sr-only"
+                          />
+                          <div
+                            className={`p-4 border-2 rounded-lg text-center transition-all ${
+                              field.value === priority
+                                ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30"
+                                : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                            }`}
+                          >
+                            <div className="font-medium text-gray-900 dark:text-gray-100 capitalize">
+                              {priority}
+                            </div>
+                          </div>
+                        </label>
+                      ),
+                    )}
+                  </div>
+                )}
+              />
+              {errors.prioridade && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  {errors.prioridade.message}
+                </p>
+              )}
+            </div>
+
+            {/* Want to present */}
+            {!isEditMode && (
+              <div className="flex items-start gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="quero_apresentar"
+                  {...register("quero_apresentar")}
+                  disabled={isMutating}
+                  className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+                <label
+                  htmlFor="quero_apresentar"
+                  className="flex-1 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                >
+                  <span className="font-medium">
+                    Quero apresentar esta ideia
+                  </span>
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                    Marque esta opção se você deseja ser o apresentador desta
+                    ideia
+                  </p>
+                </label>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div>
+                {isEditMode && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowDeleteModal(true)}
+                    disabled={isMutating}
+                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    Excluir Ideia
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setShowDeleteModal(true)}
+                  onClick={() => navigate(-1)}
                   disabled={isMutating}
-                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 >
-                  Excluir Ideia
+                  Cancelar
                 </Button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => navigate(-1)}
-                disabled={isMutating}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isMutating || isSubmitting}>
-                {isMutating ? (
-                  <div className="flex items-center gap-2">
-                    <Loading />
-                    <span>{isEditMode ? "Salvando..." : "Criando..."}</span>
-                  </div>
-                ) : isEditMode ? (
-                  "Salvar Alterações"
-                ) : (
-                  "Criar Ideia"
-                )}
-              </Button>
+                <Button type="submit" disabled={isMutating || isSubmitting}>
+                  {isMutating ? (
+                    <div className="flex items-center gap-2">
+                      <Loading />
+                      <span>{isEditMode ? "Salvando..." : "Criando..."}</span>
+                    </div>
+                  ) : isEditMode ? (
+                    "Salvar Alterações"
+                  ) : (
+                    "Criar Ideia"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={handleDelete}
-        title="Excluir Ideia"
-        message="Tem certeza que deseja excluir esta ideia? Esta ação não pode ser desfeita."
-        confirmText="Excluir"
-        cancelText="Cancelar"
-        confirmVariant="danger"
-        isLoading={deleteMutation.isPending}
-      />
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
+          title="Excluir Ideia"
+          message="Tem certeza que deseja excluir esta ideia? Esta ação não pode ser desfeita."
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          confirmVariant="danger"
+          isLoading={deleteMutation.isPending}
+        />
+      </AnimatedPage>
     </MainLayout>
   );
 }

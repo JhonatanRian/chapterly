@@ -6,6 +6,8 @@ import {
   TimelineCard,
   Loading,
   FAB,
+  StatsCardSkeleton,
+  TimelineCardSkeleton,
 } from "@/components";
 import {
   AnimatedPage,
@@ -44,19 +46,6 @@ export function DashboardPage() {
     queryFn: () => ideasService.getTimeline(5),
   });
 
-  const isLoading =
-    statsLoading || userStatsLoading || upcomingLoading || timelineLoading;
-
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loading />
-        </div>
-      </MainLayout>
-    );
-  }
-
   const upcoming = upcomingData?.results || [];
   const timeline = timelineData?.results || [];
   const nextTalk = upcoming[0];
@@ -75,194 +64,224 @@ export function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <AnimatedGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <AnimatedGridItem>
-            <StatsCard
-              title="Total de Ideias"
-              value={stats?.total_ideias || 0}
-              icon={
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
-              }
-              description={`${userStats?.ideias_criadas || 0} suas`}
-              onClick={() => navigate("/ideas")}
-            />
-          </AnimatedGridItem>
+        {statsLoading || userStatsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatsCardSkeleton />
+            <StatsCardSkeleton />
+            <StatsCardSkeleton />
+            <StatsCardSkeleton />
+          </div>
+        ) : (
+          <AnimatedGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <AnimatedGridItem>
+              <StatsCard
+                title="Total de Ideias"
+                value={stats?.total_ideias || 0}
+                icon={
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                }
+                description={`${userStats?.ideias_criadas || 0} suas`}
+                onClick={() => navigate("/ideas")}
+              />
+            </AnimatedGridItem>
 
-          <AnimatedGridItem>
-            <StatsCard
-              title="Pendentes"
-              value={stats?.pendentes || 0}
-              icon={
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              }
-              description="Aguardando votação"
-            />
-          </AnimatedGridItem>
+            <AnimatedGridItem>
+              <StatsCard
+                title="Pendentes"
+                value={stats?.pendentes || 0}
+                icon={
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                }
+                description="Aguardando votação"
+              />
+            </AnimatedGridItem>
 
-          <AnimatedGridItem>
-            <StatsCard
-              title="Agendadas"
-              value={stats?.agendadas || 0}
-              icon={
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              }
-              description="Programadas"
-              onClick={() => navigate("/calendar")}
-            />
-          </AnimatedGridItem>
+            <AnimatedGridItem>
+              <StatsCard
+                title="Agendadas"
+                value={stats?.agendadas || 0}
+                icon={
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                }
+                description="Programadas"
+                onClick={() => navigate("/calendar")}
+              />
+            </AnimatedGridItem>
 
-          <AnimatedGridItem>
-            <StatsCard
-              title="Apresentações"
-              value={userStats?.apresentacoes || 0}
-              icon={
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              }
-              description={`${userStats?.apresentacoes_por_status?.agendadas || 0} agendadas`}
-            />
-          </AnimatedGridItem>
-        </AnimatedGrid>
+            <AnimatedGridItem>
+              <StatsCard
+                title="Apresentações"
+                value={userStats?.apresentacoes || 0}
+                icon={
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                }
+                description={`${userStats?.apresentacoes_por_status?.agendadas || 0} agendadas`}
+              />
+            </AnimatedGridItem>
+          </AnimatedGrid>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Next Talk & Upcoming */}
           <div className="lg:col-span-2 space-y-8">
             {/* Next Talk Highlight */}
-            {nextTalk && (
+            {upcomingLoading ? (
               <section>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                     Próxima Apresentação
                   </h2>
                 </div>
-
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold mb-2">
-                        {nextTalk.titulo}
-                      </h3>
-                      <p className="text-indigo-100 mb-4">
-                        {nextTalk.descricao}
-                      </p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                    <div className="flex gap-4 pt-4">
+                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
                     </div>
-                    {nextTalk.imagem && (
-                      <img
-                        src={nextTalk.imagem}
-                        alt={nextTalk.titulo}
-                        className="w-24 h-24 rounded-lg object-cover ml-4"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-indigo-400">
-                    <div className="flex items-center gap-4">
-                      {nextTalk.apresentador && (
-                        <div className="flex items-center gap-2">
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
-                          </svg>
-                          <span className="font-medium">
-                            {nextTalk.apresentador.first_name}{" "}
-                            {nextTalk.apresentador.last_name}
-                          </span>
-                        </div>
-                      )}
-                      {nextTalk.data_agendada && (
-                        <div className="flex items-center gap-2">
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <span>
-                            {new Date(
-                              nextTalk.data_agendada,
-                            ).toLocaleDateString("pt-BR", {
-                              day: "2-digit",
-                              month: "long",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => navigate(`/ideas/${nextTalk.id}`)}
-                      className="px-4 py-2 bg-white text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
-                    >
-                      Ver detalhes
-                    </button>
                   </div>
                 </div>
               </section>
+            ) : (
+              nextTalk && (
+                <section>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                      Próxima Apresentação
+                    </h2>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold mb-2">
+                          {nextTalk.titulo}
+                        </h3>
+                        <p className="text-indigo-100 mb-4">
+                          {nextTalk.descricao}
+                        </p>
+                      </div>
+                      {nextTalk.imagem && (
+                        <img
+                          src={nextTalk.imagem}
+                          alt={nextTalk.titulo}
+                          className="w-24 h-24 rounded-lg object-cover ml-4"
+                        />
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-indigo-400">
+                      <div className="flex items-center gap-4">
+                        {nextTalk.apresentador && (
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                            <span className="font-medium">
+                              {nextTalk.apresentador.first_name}{" "}
+                              {nextTalk.apresentador.last_name}
+                            </span>
+                          </div>
+                        )}
+                        {nextTalk.data_agendada && (
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <span>
+                              {new Date(
+                                nextTalk.data_agendada,
+                              ).toLocaleDateString("pt-BR", {
+                                day: "2-digit",
+                                month: "long",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => navigate(`/ideas/${nextTalk.id}`)}
+                        className="px-4 py-2 bg-white text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
+                      >
+                        Ver detalhes
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )
             )}
 
             {/* Timeline */}
@@ -280,7 +299,13 @@ export function DashboardPage() {
               </div>
 
               <div className="space-y-4">
-                {timeline.length > 0 ? (
+                {timelineLoading ? (
+                  <>
+                    <TimelineCardSkeleton />
+                    <TimelineCardSkeleton />
+                    <TimelineCardSkeleton />
+                  </>
+                ) : timeline.length > 0 ? (
                   timeline.map((idea) => (
                     <TimelineCard
                       key={idea.id}

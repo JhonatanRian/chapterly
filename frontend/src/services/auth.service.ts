@@ -17,6 +17,9 @@ class AuthService {
    * Faz login do usuário
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    // Limpar tokens antigos antes de fazer login
+    this.clearAuth();
+
     const response = await api.post<AuthResponse>(ENDPOINTS.LOGIN, credentials);
 
     // Salvar tokens e usuário no localStorage
@@ -32,6 +35,9 @@ class AuthService {
    * Registra um novo usuário
    */
   async register(data: RegisterData): Promise<AuthResponse> {
+    // Limpar tokens antigos antes de registrar
+    this.clearAuth();
+
     const response = await api.post<AuthResponse>(ENDPOINTS.REGISTER, data);
 
     // Salvar tokens e usuário no localStorage

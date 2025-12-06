@@ -9,6 +9,12 @@ import type {
 } from "../types";
 import { STORAGE_KEYS } from "../utils/constants";
 
+// BroadcastChannel para sincronizar entre abas
+const authChannel =
+  typeof BroadcastChannel !== "undefined"
+    ? new BroadcastChannel("auth_channel")
+    : null;
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -31,6 +37,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+
+          // Notificar outras abas sobre o login
+          authChannel?.postMessage({ type: "LOGIN" });
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -48,6 +57,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+
+          // Notificar outras abas sobre o registro/login
+          authChannel?.postMessage({ type: "LOGIN" });
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -68,6 +80,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: false,
             isLoading: false,
           });
+
+          // Notificar outras abas sobre o logout
+          authChannel?.postMessage({ type: "LOGOUT" });
         }
       },
 
@@ -87,6 +102,12 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authService.refreshToken();
           set({ token: response.access });
+
+          // Notificar outras abas que o token foi renovado
+          authChannel?.postMessage({
+            type: "TOKEN_REFRESHED",
+            payload: { token: response.access },
+          });
         } catch (error) {
           // Se falhar, fazer logout
           get().logout();

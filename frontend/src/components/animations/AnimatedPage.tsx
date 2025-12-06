@@ -233,17 +233,33 @@ export function AnimatedCounter({
   return (
     <motion.span
       key={value}
-      initial={{ scale: 1.3 }}
-      animate={{ scale: 1 }}
+      initial={{
+        scale: 1.8,
+        y: -10,
+      }}
+      animate={{
+        scale: 1,
+        y: 0,
+      }}
       transition={{
-        duration: 0.4,
+        duration: 0.5,
         type: "spring",
-        stiffness: 200,
-        damping: 15,
+        stiffness: 300,
+        damping: 20,
+        bounce: 0.4,
       }}
       className={className}
+      style={{
+        display: "inline-block",
+      }}
     >
-      {value}
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+      >
+        {value}
+      </motion.span>
     </motion.span>
   );
 }

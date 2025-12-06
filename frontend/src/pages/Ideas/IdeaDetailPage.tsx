@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import {
   invalidateIdeaQueries,
   updateIdeaInCache,
 } from "@/utils/queryInvalidation";
+import { useConfetti } from "@/hooks/useConfetti";
 
 export function IdeaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +35,8 @@ export function IdeaDetailPage() {
   const queryClient = useQueryClient();
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<string>("");
+  const voteButtonRef = useRef<HTMLDivElement>(null);
+  const { fireExplosion } = useConfetti();
 
   // Fetch idea details
   const { data: idea, isLoading } = useQuery({
@@ -56,6 +59,11 @@ export function IdeaDetailPage() {
       // Invalida todas as queries relacionadas
       invalidateIdeaQueries(queryClient, Number(id));
       toast.success(data.voted ? "Hypado!" : "Hype removido!");
+
+      // Disparar explosão de confetti ao hypar
+      if (data.voted && voteButtonRef.current) {
+        fireExplosion(voteButtonRef.current);
+      }
     },
     onError: (error: any) => {
       handleApiError(error, "Erro ao hypar");
@@ -264,43 +272,34 @@ export function IdeaDetailPage() {
                 </div>
               </div>
 
-              <AnimatedButton
-                onClick={handleVote}
-                disabled={voteMutation.isPending}
-                className={`w-full flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                  idea.has_voted
-                    ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
-                    : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                } ${voteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {voteMutation.isPending ? (
-                  <Loading />
-                ) : idea.has_voted ? (
-                  <>
-                    <svg
-                      className="w-5 h-5 mr-2"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12.5 2.5c.39 0 .77.23.93.59l2.5 5.59 5.57.81c.78.11 1.09 1.03.52 1.56l-4.03 3.93.95 5.51c.13.77-.68 1.36-1.37 1l-4.98-2.62-4.98 2.62c-.69.36-1.5-.23-1.37-1l.95-5.51-4.03-3.93c-.57-.53-.26-1.45.52-1.56l5.57-.81 2.5-5.59c.16-.36.54-.59.93-.59z" />
-                    </svg>
-                    Hypado!
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-5 h-5 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12.5 2.5c.39 0 .77.23.93.59l2.5 5.59 5.57.81c.78.11 1.09 1.03.52 1.56l-4.03 3.93.95 5.51c.13.77-.68 1.36-1.37 1l-4.98-2.62-4.98 2.62c-.69.36-1.5-.23-1.37-1l.95-5.51-4.03-3.93c-.57-.53-.26-1.45.52-1.56l5.57-.81 2.5-5.59c.16-.36.54-.59.93-.59z" />
-                    </svg>
-                    Hypar
-                  </>
-                )}
-              </AnimatedButton>
+              <div ref={voteButtonRef}>
+                <AnimatedButton
+                  onClick={handleVote}
+                  disabled={voteMutation.isPending}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    idea.has_voted
+                      ? "bg-orange-500 text-white dark:bg-orange-600 shadow-lg shadow-orange-500/30"
+                      : "bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 shadow-md hover:shadow-lg hover:shadow-orange-500/30"
+                  } ${voteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {voteMutation.isPending ? (
+                    <Loading />
+                  ) : idea.has_voted ? (
+                    <>
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12.5 2.5c.39 0 .77.23.93.59l2.5 5.59 5.57.81c.78.11 1.09 1.03.52 1.56l-4.03 3.93.95 5.51c.13.77-.68 1.36-1.37 1l-4.98-2.62-4.98 2.62c-.69.36-1.5-.23-1.37-1l.95-5.51-4.03-3.93c-.57-.53-.26-1.45.52-1.56l5.57-.81 2.5-5.59c.16-.36.54-.59.93-.59z" />
+                      </svg>
+                      Hypado!
+                    </>
+                  ) : (
+                    <>🔥 Hypar</>
+                  )}
+                </AnimatedButton>
+              </div>
             </div>
 
             {/* Presenter Info */}
@@ -322,8 +321,7 @@ export function IdeaDetailPage() {
                     <Button
                       onClick={handleUnvolunteer}
                       disabled={unvolunteerMutation.isPending}
-                      variant="ghost"
-                      className="w-full"
+                      className="w-full bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
                     >
                       Cancelar candidatura
                     </Button>
@@ -388,9 +386,8 @@ export function IdeaDetailPage() {
                     </div>
                     {(idea.is_owner || idea.is_presenter) && (
                       <Button
-                        variant="ghost"
                         onClick={openScheduleModal}
-                        className="w-full text-sm"
+                        className="w-full text-sm bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700"
                       >
                         <svg
                           className="w-4 h-4 mr-2"
@@ -416,9 +413,8 @@ export function IdeaDetailPage() {
                         Esta apresentação ainda não foi agendada
                       </div>
                       <Button
-                        variant="primary"
                         onClick={openScheduleModal}
-                        className="w-full"
+                        className="w-full bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700"
                       >
                         <svg
                           className="w-4 h-4 mr-2"
@@ -518,9 +514,9 @@ export function IdeaDetailPage() {
                 Cancelar
               </Button>
               <Button
-                variant="primary"
                 onClick={handleSchedule}
                 disabled={rescheduleMutation.isPending || !scheduledDate}
+                className="bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700"
               >
                 {rescheduleMutation.isPending ? (
                   <div className="flex items-center gap-2">

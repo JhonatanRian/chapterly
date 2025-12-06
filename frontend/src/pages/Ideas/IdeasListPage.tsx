@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MainLayout, IdeaCard, Loading, Button, FAB } from "@/components";
+import {
+  MainLayout,
+  IdeaCard,
+  Button,
+  FAB,
+  SkeletonGrid,
+  NoIdeasEmptyState,
+  NoSearchResultsEmptyState,
+} from "@/components";
 import {
   AnimatedPage,
   AnimatedGrid,
@@ -299,9 +307,7 @@ export function IdeasListPage() {
 
         {/* Ideas Grid/List */}
         {isLoading ? (
-          <div className="flex items-center justify-center h-96">
-            <Loading />
-          </div>
+          <SkeletonGrid count={6} type="idea" />
         ) : ideas.length > 0 ? (
           viewMode === "grid" ? (
             <AnimatedGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -331,31 +337,10 @@ export function IdeasListPage() {
               ))}
             </div>
           )
+        ) : hasFilters ? (
+          <NoSearchResultsEmptyState onClearFilters={clearFilters} />
         ) : (
-          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-              />
-            </svg>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Nenhuma ideia encontrada
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {hasFilters
-                ? "Tente ajustar os filtros ou criar uma nova ideia"
-                : "Seja o primeiro a compartilhar uma ideia!"}
-            </p>
-            <Button onClick={() => navigate("/ideas/new")}>Nova Ideia</Button>
-          </div>
+          <NoIdeasEmptyState onCreate={() => navigate("/ideas/new")} />
         )}
 
         {/* Pagination */}
