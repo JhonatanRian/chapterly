@@ -21,20 +21,6 @@ interface CalendarViewProps {
   loading?: boolean;
 }
 
-// Status color mapping
-const STATUS_COLORS: Record<string, string> = {
-  pendente: "#94a3b8", // slate-400
-  agendado: "#3b82f6", // blue-500
-  concluido: "#10b981", // green-500
-};
-
-// Priority color mapping (border)
-const PRIORITY_COLORS: Record<string, string> = {
-  baixa: "#22c55e", // green-500
-  media: "#f59e0b", // amber-500
-  alta: "#ef4444", // red-500
-};
-
 export function CalendarView({
   ideas,
   onEventDrop,
@@ -52,8 +38,6 @@ export function CalendarView({
       id: String(idea.id),
       title: idea.titulo,
       start: idea.data_agendada!,
-      backgroundColor: STATUS_COLORS[idea.status] || STATUS_COLORS.pendente,
-      borderColor: PRIORITY_COLORS[idea.prioridade] || PRIORITY_COLORS.media,
       extendedProps: {
         idea,
       },
@@ -129,19 +113,18 @@ export function CalendarView({
         }}
         eventContent={(arg) => {
           const idea = arg.event.extendedProps.idea as IdeaListItem;
-          const displayText = idea.apresentador
-            ? `${arg.event.title} - ${idea.apresentador.username}`
-            : arg.event.title;
 
           return (
             <div
-              className="fc-event-main-frame group relative"
+              className="fc-event-main-frame group relative min-w-0"
               title={`${idea.titulo}${idea.apresentador ? ` - ${idea.apresentador.username}` : ""} | Status: ${idea.status} | Prioridade: ${idea.prioridade}`}
             >
-              <div className="fc-event-time text-xs">{arg.timeText}</div>
-              <div className="fc-event-title-container">
-                <div className="fc-event-title fc-sticky truncate text-sm font-medium">
-                  {displayText}
+              <div className="fc-event-time text-xs font-semibold text-white">
+                {arg.timeText}
+              </div>
+              <div className="fc-event-title-container min-w-0">
+                <div className="fc-event-title fc-sticky text-xs truncate text-white font-medium">
+                  {idea.titulo}
                 </div>
               </div>
 
@@ -238,41 +221,69 @@ export function CalendarView({
           background-color: #374151;
         }
 
-        /* Event styling - enhanced visibility */
+        /* Event styling - clean and professional */
         .fc-event {
-          border-width: 2px !important;
-          border-left-width: 5px !important;
           border-radius: 4px !important;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+          border: none !important;
+        }
+
+        /* Light mode - indigo events */
+        .fc-event {
+          background-color: #6366f1 !important;
+          color: white !important;
+        }
+
+        /* Dark mode - slightly lighter indigo */
+        .dark .fc-event {
+          background-color: #4f46e5 !important;
+          color: white !important;
         }
 
         .fc-event:hover {
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15) !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
           transform: translateY(-1px);
+          opacity: 0.9;
+        }
+
+        /* Light mode hover */
+        .fc-event:hover {
+          background-color: #4f46e5 !important;
+        }
+
+        /* Dark mode hover */
+        .dark .fc-event:hover {
+          background-color: #6366f1 !important;
         }
 
         .fc-event-main {
-          padding: 4px 6px !important;
-          color: white !important;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+          padding: 3px 4px !important;
+          overflow: hidden !important;
+          background-color: inherit !important;
         }
 
         .fc-event-time {
           font-weight: 600 !important;
+          display: block !important;
+          white-space: nowrap !important;
         }
 
         .fc-event-title {
           font-weight: 500 !important;
-          line-height: 1.3 !important;
+          line-height: 1.2 !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
+        }
+
+        .fc-event-title-container {
+          overflow: hidden !important;
         }
 
         /* Tooltip positioning fix for overflow */
-        .fc-daygrid-event {
-          overflow: visible !important;
-        }
 
         .fc-event-main-frame {
-          overflow: visible !important;
+          overflow: hidden !important;
         }
 
         /* Responsive */

@@ -213,7 +213,7 @@ export function CalendarPage() {
 
         {/* Calendar + Legend */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Calendar */}
+          {/* Calendar - Full Width */}
           <div className="lg:col-span-3">
             <CalendarView
               ideas={scheduledIdeas}
@@ -224,7 +224,7 @@ export function CalendarPage() {
             />
           </div>
 
-          {/* Legend */}
+          {/* Legend + Quick Actions */}
           <div className="lg:col-span-1">
             <CalendarLegend />
 
@@ -397,39 +397,6 @@ export function CalendarPage() {
             </div>
           </Modal>
         )}
-
-        {/* Help Section */}
-        <div className="mt-8 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-          <div className="flex gap-3">
-            <svg
-              className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div className="text-sm text-indigo-900 dark:text-indigo-200">
-              <p className="font-medium mb-1">Como usar o calendário</p>
-              <ul className="list-disc list-inside text-indigo-700 dark:text-indigo-300 space-y-1">
-                <li>Clique em um evento para ver detalhes</li>
-                <li>Arraste e solte eventos para reagendar apresentações</li>
-                <li>
-                  Use os botões no topo para alternar entre visualizações (Mês,
-                  Semana, Dia, Lista)
-                </li>
-                <li>
-                  As cores de fundo indicam o status e a borda a prioridade
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
       </AnimatedPage>
     </MainLayout>
   );
