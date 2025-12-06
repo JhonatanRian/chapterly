@@ -1,17 +1,17 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { API_BASE_URL, STORAGE_KEYS, ENDPOINTS } from '../utils/constants';
+import axios, { AxiosError } from "axios";
+import { API_BASE_URL, STORAGE_KEYS, ENDPOINTS } from "../utils/constants";
 
 // Criar instância do axios
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request Interceptor: Adiciona token JWT às requisições
 api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  (config: any) => {
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
     if (token && config.headers) {
@@ -22,7 +22,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response Interceptor: Trata erros e refresh de token
@@ -31,9 +31,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-    };
+    const originalRequest = error.config as any;
 
     // Se o erro for 401 (Unauthorized) e não for na rota de login/refresh
     if (
@@ -53,7 +51,7 @@ api.interceptors.response.use(
           localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
           localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
           localStorage.removeItem(STORAGE_KEYS.USER);
-          window.location.href = '/login';
+          window.location.href = "/login";
           return Promise.reject(error);
         }
 
@@ -62,7 +60,7 @@ api.interceptors.response.use(
           `${API_BASE_URL}${ENDPOINTS.REFRESH}`,
           {
             refresh: refreshToken,
-          }
+          },
         );
 
         const { access } = response.data;
@@ -82,13 +80,13 @@ api.interceptors.response.use(
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // Helper para extrair mensagem de erro da API
@@ -105,12 +103,12 @@ export function getErrorMessage(error: unknown): string {
       if (data.message) return data.message;
 
       // Se for um objeto com erros de validação
-      if (typeof data === 'object' && !Array.isArray(data)) {
+      if (typeof data === "object" && !Array.isArray(data)) {
         const firstError = Object.values(data)[0];
         if (Array.isArray(firstError)) {
           return firstError[0];
         }
-        if (typeof firstError === 'string') {
+        if (typeof firstError === "string") {
           return firstError;
         }
       }
@@ -122,8 +120,8 @@ export function getErrorMessage(error: unknown): string {
     }
 
     // Erros de rede
-    if (axiosError.message === 'Network Error') {
-      return 'Erro de conexão. Verifique sua internet.';
+    if (axiosError.message === "Network Error") {
+      return "Erro de conexão. Verifique sua internet.";
     }
 
     return axiosError.message;
@@ -134,7 +132,7 @@ export function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return 'Ocorreu um erro inesperado.';
+  return "Ocorreu um erro inesperado.";
 }
 
 // Helper para verificar se é erro de autenticação

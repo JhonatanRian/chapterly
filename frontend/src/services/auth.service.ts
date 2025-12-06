@@ -1,13 +1,13 @@
-import api from './api';
-import {
+import api from "./api";
+import type {
   LoginCredentials,
   RegisterData,
   AuthResponse,
   UserProfile,
   UserStats,
   TokenResponse,
-} from '../types';
-import { ENDPOINTS, STORAGE_KEYS } from '../utils/constants';
+} from "../types";
+import { ENDPOINTS, STORAGE_KEYS } from "../utils/constants";
 
 /**
  * Serviço de autenticação
@@ -54,7 +54,7 @@ class AuthService {
         await api.post(ENDPOINTS.LOGOUT, { refresh: refreshToken });
       } catch (error) {
         // Ignorar erros de logout
-        console.error('Erro ao fazer logout:', error);
+        console.error("Erro ao fazer logout:", error);
       }
     }
 
@@ -69,7 +69,7 @@ class AuthService {
     const refreshToken = this.getRefreshToken();
 
     if (!refreshToken) {
-      throw new Error('Refresh token não encontrado');
+      throw new Error("Refresh token não encontrado");
     }
 
     const response = await api.post<TokenResponse>(ENDPOINTS.REFRESH, {
@@ -124,7 +124,7 @@ class AuthService {
   }): Promise<{ message: string }> {
     const response = await api.post<{ message: string }>(
       ENDPOINTS.CHANGE_PASSWORD,
-      data
+      data,
     );
     return response.data;
   }

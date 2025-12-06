@@ -1,8 +1,13 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { authService } from '../services/auth.service';
-import { AuthStore, LoginCredentials, RegisterData, UserProfile } from '../types';
-import { STORAGE_KEYS } from '../utils/constants';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { authService } from "../services/auth.service";
+import type {
+  AuthStore,
+  LoginCredentials,
+  RegisterData,
+  UserProfile,
+} from "../types";
+import { STORAGE_KEYS } from "../utils/constants";
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -54,7 +59,7 @@ export const useAuthStore = create<AuthStore>()(
         try {
           await authService.logout();
         } catch (error) {
-          console.error('Erro ao fazer logout:', error);
+          console.error("Erro ao fazer logout:", error);
         } finally {
           set({
             user: null,
@@ -97,8 +102,8 @@ export const useAuthStore = create<AuthStore>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );
 
 // Função para inicializar o store com dados do localStorage

@@ -274,6 +274,70 @@ class IdeaViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @extend_schema(
+        summary="Reagendar apresentação",
+        description="Atualiza a data agendada de uma ideia (drag & drop no calendário)",
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "data_agendada": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Nova data/hora para apresentação",
+                    }
+                },
+                "required": ["data_agendada"],
+            }
+        },
+    )
+    @action(
+        detail=True,
+        methods=["patch"],
+        permission_classes=[IsAuthenticated, IsPresenterOrOwnerOrAdmin],
+    )
+    def reschedule(self, request, pk=None):
+        """
+        PATCH /ideas/{id}/reschedule/
+        Reagenda uma apresentação (atualiza data_agendada)
+        Apenas autor, apresentador ou admin podem reagendar
+        """
+        idea = self.get_object()
+        data_agendada = request.data.get("data_agendada")
+
+        if not data_agendada:
+            return Response(
+                {"detail": "Campo 'data_agendada' é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Atualizar data agendada
+        idea.data_agendada = data_agendada
+
+        # Se estava pendente e agora tem data, muda para agendado
+        if idea.status == "pendente" and data_agendada:
+            idea.status = "agendado"
+
+        idea.save()
+
+        # Criar notificação para autor e apresentador (se diferentes do usuário)
+        notified_users = set()
+        if idea.autor != request.user:
+            notified_users.add(idea.autor)
+        if idea.apresentador and idea.apresentador != request.user:
+            notified_users.add(idea.apresentador)
+
+        for user in notified_users:
+            Notification.objects.create(
+                user=user,
+                tipo="agendamento",
+                mensagem=f"{request.user.username} reagendou '{idea.titulo}'",
+                idea=idea,
+            )
+
+        serializer = IdeaDetailSerializer(idea, context={"request": request})
+        return Response(serializer.data)
+
+    @extend_schema(
         summary="Estatísticas gerais",
         description="Retorna estatísticas gerais do sistema de ideias",
     )
