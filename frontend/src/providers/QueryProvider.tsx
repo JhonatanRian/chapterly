@@ -6,11 +6,12 @@ import type { ReactNode } from "react";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutos
-      gcTime: 10 * 60 * 1000, // 10 minutos (anteriormente cacheTime)
+      staleTime: 30 * 1000, // 30 segundos (dados ficam "frescos" por menos tempo)
+      gcTime: 5 * 60 * 1000, // 5 minutos (garbage collection)
       retry: 1,
-      refetchOnWindowFocus: false,
-      refetchOnMount: true,
+      refetchOnWindowFocus: true, // ✅ Refetch quando volta para a aba
+      refetchOnMount: true, // ✅ Refetch quando componente monta
+      refetchOnReconnect: true, // ✅ Refetch quando reconecta à internet
     },
     mutations: {
       retry: 0,

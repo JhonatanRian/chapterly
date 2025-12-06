@@ -18,6 +18,10 @@ import {
 } from "@/components";
 import { ideasService } from "@/services/ideas.service";
 import { handleApiError } from "@/utils/errorHandler";
+import {
+  invalidateIdeaQueries,
+  removeIdeaFromCache,
+} from "@/utils/queryInvalidation";
 import type { IdeaPriority } from "@/types";
 
 const ideaFormSchema = z.object({
@@ -118,7 +122,8 @@ export function IdeaFormPage() {
     },
     onSuccess: (data) => {
       toast.success("Ideia criada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["ideas"] });
+      // Invalida todas as queries de ideias para sincronizar com dashboard, listas, etc
+      invalidateIdeaQueries(queryClient);
       navigate(`/ideas/${data.id}`);
     },
     onError: (error: any) => {
@@ -138,8 +143,8 @@ export function IdeaFormPage() {
     },
     onSuccess: () => {
       toast.success("Ideia atualizada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["idea", id] });
-      queryClient.invalidateQueries({ queryKey: ["ideas"] });
+      // Invalida todas as queries relacionadas para refletir mudanças em todas as páginas
+      invalidateIdeaQueries(queryClient, Number(id));
       navigate(`/ideas/${id}`);
     },
     onError: (error: any) => {
@@ -152,7 +157,8 @@ export function IdeaFormPage() {
     mutationFn: () => ideasService.deleteIdea(Number(id)),
     onSuccess: () => {
       toast.success("Ideia excluída com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["ideas"] });
+      // Remove do cache e invalida listas
+      removeIdeaFromCache(queryClient, Number(id));
       navigate("/ideas");
     },
     onError: (error: any) => {

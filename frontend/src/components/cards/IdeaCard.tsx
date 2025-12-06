@@ -64,7 +64,7 @@ export function IdeaCard({
             <PriorityBadge priority={idea.prioridade} />
           </div>
 
-          {/* Vote button */}
+          {/* Vote button (Hype) */}
           {onVote && (
             <button
               onClick={handleVote}
@@ -73,24 +73,20 @@ export function IdeaCard({
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium",
                 "transition-colors duration-200",
                 idea.has_voted
-                  ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
-                  : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600",
+                  ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-600",
                 isVoting && "opacity-50 cursor-not-allowed",
               )}
-              aria-label={idea.has_voted ? "Remover voto" : "Votar"}
+              aria-label={idea.has_voted ? "Remover hype" : "Hypar"}
             >
               <svg
                 className="w-4 h-4"
                 fill={idea.has_voted ? "currentColor" : "none"}
                 stroke="currentColor"
+                strokeWidth={2}
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 15l7-7 7 7"
-                />
+                <path d="M12.5 2.5c.39 0 .77.23.93.59l2.5 5.59 5.57.81c.78.11 1.09 1.03.52 1.56l-4.03 3.93.95 5.51c.13.77-.68 1.36-1.37 1l-4.98-2.62-4.98 2.62c-.69.36-1.5-.23-1.37-1l.95-5.51-4.03-3.93c-.57-.53-.26-1.45.52-1.56l5.57-.81 2.5-5.59c.16-.36.54-.59.93-.59z" />
               </svg>
               <span>{idea.vote_count}</span>
             </button>

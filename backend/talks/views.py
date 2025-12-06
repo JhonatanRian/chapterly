@@ -73,7 +73,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     filterset_class = IdeaFilter
     search_fields = ["titulo", "descricao", "conteudo"]
-    ordering_fields = ["created_at", "data_agendada", "vote_count"]
+    ordering_fields = ["created_at", "data_agendada", "total_votes"]
     ordering = ["-created_at"]
 
     def get_queryset(self):
@@ -86,7 +86,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
         ).prefetch_related("tags", "votos")
 
         # Anota com contagem de votos para poder ordenar
-        queryset = queryset.annotate(vote_count=Count("votos"))
+        queryset = queryset.annotate(total_votes=Count("votos"))
 
         return queryset
 

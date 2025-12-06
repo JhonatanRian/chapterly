@@ -1,5 +1,5 @@
-import { cn } from '@/utils/cn';
-import { ReactNode } from 'react';
+import { cn } from "@/utils/cn";
+import type { ReactNode } from "react";
 
 interface StatsCardProps {
   title: string;
@@ -23,20 +23,22 @@ export function StatsCard({
   className,
   onClick,
 }: StatsCardProps) {
-  const Component = onClick ? 'button' : 'div';
+  const Component = onClick ? "button" : "div";
 
   return (
     <Component
       onClick={onClick}
       className={cn(
-        'relative p-6 rounded-lg',
-        'bg-white dark:bg-gray-800',
-        'border border-gray-200 dark:border-gray-700',
-        'transition-all duration-200',
-        onClick && 'cursor-pointer hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600',
-        className
+        "relative p-6 rounded-lg w-full h-full min-h-[160px]",
+        "bg-white dark:bg-gray-800",
+        "border border-gray-200 dark:border-gray-700",
+        "transition-all duration-200",
+        "flex flex-col",
+        onClick &&
+          "cursor-pointer hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600",
+        className,
       )}
-      type={onClick ? 'button' : undefined}
+      type={onClick ? "button" : undefined}
     >
       {/* Header with icon */}
       <div className="flex items-start justify-between mb-4">
@@ -53,25 +55,30 @@ export function StatsCard({
       </div>
 
       {/* Value */}
-      <div className="mb-2">
+      <div className="mb-2 flex-grow">
         <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           {value}
         </p>
       </div>
 
       {/* Trend and description */}
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-2 text-sm mt-auto">
         {trend && (
           <span
             className={cn(
-              'inline-flex items-center gap-1 font-medium',
+              "inline-flex items-center gap-1 font-medium",
               trend.isPositive
-                ? 'text-green-600 dark:text-green-400'
-                : 'text-red-600 dark:text-red-400'
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400",
             )}
           >
             {trend.isPositive ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -80,7 +87,12 @@ export function StatsCard({
                 />
               </svg>
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -93,7 +105,9 @@ export function StatsCard({
           </span>
         )}
         {description && (
-          <span className="text-gray-500 dark:text-gray-400">{description}</span>
+          <span className="text-gray-500 dark:text-gray-400">
+            {description}
+          </span>
         )}
       </div>
     </Component>

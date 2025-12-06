@@ -124,6 +124,6 @@ class IdeaFilter(django_filters.FilterSet):
         """
         from django.db.models import Count
 
-        return queryset.annotate(vote_count=Count("votos")).filter(
-            vote_count__gte=value
+        return queryset.annotate(total_votes=Count("votos")).filter(
+            total_votes__gte=value
         )

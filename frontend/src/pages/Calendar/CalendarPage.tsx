@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { handleApiError } from "@/utils/errorHandler";
+import { invalidateIdeaQueries } from "@/utils/queryInvalidation";
 import {
   MainLayout,
   Loading,
@@ -64,10 +65,8 @@ export function CalendarPage() {
     },
     onSuccess: (data) => {
       toast.success("Apresentação reagendada com sucesso!");
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["timeline-ideas"] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming-ideas"] });
-      queryClient.invalidateQueries({ queryKey: ["idea", data.id] });
+      // Invalida todas as queries relacionadas para sincronizar todas as páginas
+      invalidateIdeaQueries(queryClient, data.id);
     },
   });
 

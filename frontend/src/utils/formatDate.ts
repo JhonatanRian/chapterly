@@ -1,15 +1,50 @@
-import { format, formatDistanceToNow, isPast, isFuture, isToday } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import {
+  format,
+  formatDistanceToNow,
+  isPast,
+  isFuture,
+  isToday,
+} from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 /**
  * Formata uma data no formato brasileiro
  * @param date - Data a ser formatada
- * @param formatString - Formato desejado (padrão: dd/MM/yyyy)
+ * @param formatString - Formato desejado. Pode ser:
+ *   - "relative": tempo relativo (ex: "há 2 horas", "em 3 dias")
+ *   - "short": formato curto (ex: "25/01/2025")
+ *   - "full": formato completo (ex: "25 de janeiro de 2025 às 14:30")
+ *   - Qualquer formato válido do date-fns (ex: "dd/MM/yyyy HH:mm")
  * @returns Data formatada
+ *
+ * @example
+ * formatDate(date, "relative") // "há 2 horas"
+ * formatDate(date, "short") // "25/01/2025"
+ * formatDate(date, "full") // "25 de janeiro de 2025 às 14:30"
+ * formatDate(date, "dd/MM/yyyy HH:mm") // "25/01/2025 14:30"
  */
-export function formatDate(date: string | Date, formatString: string = 'dd/MM/yyyy'): string {
-  if (!date) return '';
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+export function formatDate(
+  date: string | Date,
+  formatString: string = "dd/MM/yyyy",
+): string {
+  if (!date) return "";
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  // Handle special format shortcuts
+  if (formatString === "relative") {
+    return formatDistanceToNow(dateObj, { addSuffix: true, locale: ptBR });
+  }
+
+  if (formatString === "short") {
+    return format(dateObj, "dd/MM/yyyy", { locale: ptBR });
+  }
+
+  if (formatString === "full") {
+    return format(dateObj, "dd 'de' MMMM 'de' yyyy 'às' HH:mm", {
+      locale: ptBR,
+    });
+  }
+
   return format(dateObj, formatString, { locale: ptBR });
 }
 
@@ -19,8 +54,8 @@ export function formatDate(date: string | Date, formatString: string = 'dd/MM/yy
  * @returns Data e hora formatada
  */
 export function formatDateTime(date: string | Date): string {
-  if (!date) return '';
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (!date) return "";
+  const dateObj = typeof date === "string" ? new Date(date) : date;
   return format(dateObj, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
 }
 
@@ -30,8 +65,8 @@ export function formatDateTime(date: string | Date): string {
  * @returns Tempo relativo
  */
 export function formatRelativeTime(date: string | Date): string {
-  if (!date) return '';
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (!date) return "";
+  const dateObj = typeof date === "string" ? new Date(date) : date;
   return formatDistanceToNow(dateObj, { addSuffix: true, locale: ptBR });
 }
 
@@ -42,7 +77,7 @@ export function formatRelativeTime(date: string | Date): string {
  */
 export function isDatePast(date: string | Date): boolean {
   if (!date) return false;
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? new Date(date) : date;
   return isPast(dateObj);
 }
 
@@ -53,7 +88,7 @@ export function isDatePast(date: string | Date): boolean {
  */
 export function isDateFuture(date: string | Date): boolean {
   if (!date) return false;
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? new Date(date) : date;
   return isFuture(dateObj);
 }
 
@@ -64,7 +99,7 @@ export function isDateFuture(date: string | Date): boolean {
  */
 export function isDateToday(date: string | Date): boolean {
   if (!date) return false;
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? new Date(date) : date;
   return isToday(dateObj);
 }
 
@@ -83,12 +118,12 @@ export function formatToISO(date: Date): string {
  * @returns Descrição amigável
  */
 export function getScheduledDateLabel(date: string | Date | null): string {
-  if (!date) return 'Não agendado';
+  if (!date) return "Não agendado";
 
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? new Date(date) : date;
 
   if (isToday(dateObj)) {
-    return `Hoje às ${format(dateObj, 'HH:mm')}`;
+    return `Hoje às ${format(dateObj, "HH:mm")}`;
   }
 
   if (isPast(dateObj)) {
@@ -110,7 +145,7 @@ export function getTimeRemaining(date: string | Date): {
   seconds: number;
   total: number;
 } {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = typeof date === "string" ? new Date(date) : date;
   const total = dateObj.getTime() - Date.now();
 
   const seconds = Math.floor((total / 1000) % 60);
