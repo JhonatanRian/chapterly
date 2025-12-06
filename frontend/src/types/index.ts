@@ -84,6 +84,7 @@ export interface IdeaListItem {
   prioridade: IdeaPriority;
   data_agendada: string | null;
   vote_count: number;
+  vote_percentage: string;
   has_voted: boolean;
   precisa_apresentador: boolean;
   created_at: string;
@@ -112,7 +113,6 @@ export interface IdeaDetail extends IdeaListItem {
   conteudo: string;
   votos: Vote[];
   comentarios: Comment[];
-  is_owner: boolean;
   is_presenter: boolean;
 }
 

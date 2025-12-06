@@ -1,6 +1,6 @@
 from django.db.models import Count, Q
 from django.utils import timezone
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -8,13 +8,14 @@ from rest_framework.response import Response
 
 from .filters import IdeaFilter
 from .models import Comment, Idea, Notification, Tag, Vote
-from .permissions import IsOwner, IsOwnerOrReadOnly, IsPresenterOrOwnerOrAdmin
+from .permissions import IsOwnerOrReadOnly, IsPresenterOrOwnerOrAdmin
 from .serializers import (
     CommentSerializer,
     IdeaCreateUpdateSerializer,
     IdeaDetailSerializer,
     IdeaListSerializer,
     NotificationSerializer,
+    RescheduleSerializer,
     TagSerializer,
 )
 
@@ -78,17 +79,12 @@ class IdeaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Otimiza queries com select_related e prefetch_related
-        Adiciona anotação de vote_count para ordenação
+        Otimiza queries com anotações de votos pré-calculadas.
+        Usa manager customizado com select_related, prefetch_related e vote_stats.
         """
-        queryset = Idea.objects.select_related(
-            "autor", "apresentador"
-        ).prefetch_related("tags", "votos")
-
-        # Anota com contagem de votos para poder ordenar
-        queryset = queryset.annotate(total_votes=Count("votos"))
-
-        return queryset
+        return Idea.objects.with_vote_stats().annotate(
+            total_votes=Count("votos", filter=Q(votos__user__is_active=True))
+        )
 
     def get_serializer_class(self):
         """
@@ -117,6 +113,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
                     "application/json": {
                         "editable": True,
                         "deletable": True,
+                        "reschedulable": True,
                     }
                 },
             }
@@ -126,11 +123,12 @@ class IdeaViewSet(viewsets.ModelViewSet):
     def permissions(self, request, pk=None):
         """
         GET /ideas/{id}/permissions/
-        Retorna as permissões do usuário para editar e deletar a ideia
+        Retorna as permissões do usuário para editar, deletar e reagendar a ideia
 
         Regras:
         - Editar: Criador OR Apresentador OR Admin
         - Deletar: Criador OR Admin
+        - Reagendar: Criador OR Apresentador OR Admin
         """
         idea = self.get_object()
         user = request.user
@@ -150,10 +148,14 @@ class IdeaViewSet(viewsets.ModelViewSet):
         # Deletar: Criador OR Admin (não apresentador)
         deletable = is_creator or is_admin
 
+        # Reagendar: Criador OR Apresentador OR Admin
+        reschedulable = is_creator or is_presenter or is_admin
+
         return Response(
             {
                 "editable": editable,
                 "deletable": deletable,
+                "reschedulable": reschedulable,
             },
             status=status.HTTP_200_OK,
         )
@@ -291,9 +293,8 @@ class IdeaViewSet(viewsets.ModelViewSet):
         Retorna as próximas 5 apresentações agendadas
         """
         upcoming_ideas = (
-            Idea.objects.filter(status="agendado", data_agendada__gte=timezone.now())
-            .select_related("autor", "apresentador")
-            .prefetch_related("tags")
+            Idea.objects.with_vote_stats()
+            .filter(data_agendada__gte=timezone.now())
             .order_by("data_agendada")[:5]
         )
 
@@ -314,9 +315,8 @@ class IdeaViewSet(viewsets.ModelViewSet):
         Retorna todas as apresentações agendadas, ordenadas por data
         """
         timeline_ideas = (
-            Idea.objects.filter(status="agendado", data_agendada__isnull=False)
-            .select_related("autor", "apresentador")
-            .prefetch_related("tags")
+            Idea.objects.with_vote_stats()
+            .filter(data_agendada__isnull=False)
             .order_by("data_agendada")
         )
 
@@ -336,20 +336,9 @@ class IdeaViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         summary="Reagendar apresentação",
-        description="Atualiza a data agendada de uma ideia (drag & drop no calendário)",
-        request={
-            "application/json": {
-                "type": "object",
-                "properties": {
-                    "data_agendada": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "Nova data/hora para apresentação",
-                    }
-                },
-                "required": ["data_agendada"],
-            }
-        },
+        description="Atualiza a data/hora agendada da apresentação",
+        request=RescheduleSerializer,
+        responses={200: IdeaDetailSerializer},
     )
     @action(
         detail=True,
@@ -363,21 +352,13 @@ class IdeaViewSet(viewsets.ModelViewSet):
         Apenas autor, apresentador ou admin podem reagendar
         """
         idea = self.get_object()
-        data_agendada = request.data.get("data_agendada")
 
-        if not data_agendada:
-            return Response(
-                {"detail": "Campo 'data_agendada' é obrigatório."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # Validar dados com serializer
+        serializer = RescheduleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        # Atualizar data agendada
-        idea.data_agendada = data_agendada
-
-        # Se estava pendente e agora tem data, muda para agendado
-        if idea.status == "pendente" and data_agendada:
-            idea.status = "agendado"
-
+        # Atualizar data agendada (já vem validada e como datetime)
+        idea.data_agendada = serializer.validated_data["data_agendada"]
         idea.save()
 
         # Criar notificação para autor e apresentador (se diferentes do usuário)

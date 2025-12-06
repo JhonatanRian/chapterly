@@ -23,6 +23,7 @@ import {
   invalidateIdeaQueries,
   removeIdeaFromCache,
 } from "@/utils/queryInvalidation";
+import { useIdeaPermissions } from "@/hooks/useIdeaPermissions";
 import type { IdeaPriority } from "@/types";
 
 const ideaFormSchema = z.object({
@@ -54,11 +55,16 @@ export function IdeaFormPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Fetch idea details if editing
-  const { data: idea, isLoading: isLoadingIdea } = useQuery({
+  // Fetch idea if editing
+  const { data: idea, isLoading: ideaLoading } = useQuery({
     queryKey: ["idea", id],
     queryFn: () => ideasService.getIdea(Number(id)),
     enabled: isEditMode,
   });
+
+  // Fetch permissions if editing
+  const { data: permissions, isLoading: permissionsLoading } =
+    useIdeaPermissions(id);
 
   const {
     register,
@@ -179,7 +185,8 @@ export function IdeaFormPage() {
     deleteMutation.mutate();
   };
 
-  if (isEditMode && isLoadingIdea) {
+  // Loading state
+  if (ideaLoading || (isEditMode && permissionsLoading)) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-96">
@@ -189,8 +196,8 @@ export function IdeaFormPage() {
     );
   }
 
-  // Check if user is owner (only owners can edit)
-  if (isEditMode && idea && !idea.is_owner) {
+  // Check if user has permission to edit
+  if (isEditMode && permissions && !permissions.editable) {
     return (
       <MainLayout>
         <div className="text-center py-16">

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout, TimelineCard, Loading, Button } from "@/components";
 import { AnimatedPage } from "@/components/animations";
 import { ideasService } from "@/services/ideas.service";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { IdeaStatus } from "@/types";
 
 export function TimelinePage() {
@@ -23,6 +23,49 @@ export function TimelinePage() {
     filterStatus === "all"
       ? allIdeas
       : allIdeas.filter((idea) => idea.status === filterStatus);
+
+  // Find all presentations that should be highlighted
+  // 1. All presentations scheduled for today (regardless of time)
+  // 2. All presentations at the same time as the next upcoming one (if not today)
+  const highlightedIds = useMemo(() => {
+    const now = new Date();
+    const todayDateString = now.toDateString();
+
+    // Get all presentations scheduled for today that haven't happened yet
+    const todaysFutureIdeas = allIdeas.filter((idea) => {
+      if (!idea.data_agendada) return false;
+      const ideaDate = new Date(idea.data_agendada);
+      return ideaDate.toDateString() === todayDateString && ideaDate > now;
+    });
+
+    // If there are presentations today, highlight all of them
+    if (todaysFutureIdeas.length > 0) {
+      return todaysFutureIdeas.map((idea) => idea.id);
+    }
+
+    // Otherwise, find all presentations at the same time as the next upcoming one
+    const futureIdeas = allIdeas.filter((idea) => {
+      if (!idea.data_agendada) return false;
+      return new Date(idea.data_agendada) > now;
+    });
+
+    if (futureIdeas.length === 0) return [];
+
+    // Sort by date to find the earliest one
+    futureIdeas.sort((a, b) => {
+      const dateA = new Date(a.data_agendada || "").getTime();
+      const dateB = new Date(b.data_agendada || "").getTime();
+      return dateA - dateB;
+    });
+
+    // Get the time of the next upcoming presentation
+    const nextTime = futureIdeas[0]?.data_agendada;
+
+    // Return ALL presentations with this same datetime
+    return futureIdeas
+      .filter((idea) => idea.data_agendada === nextTime)
+      .map((idea) => idea.id);
+  }, [allIdeas]);
 
   // Group by date
   const groupedByDate = filteredIdeas.reduce(
@@ -129,7 +172,7 @@ export function TimelinePage() {
         {/* Timeline */}
         <div className="space-y-8">
           {dates.length > 0 ? (
-            dates.map((dateKey, dateIndex) => {
+            dates.map((dateKey) => {
               const ideas = groupedByDate[dateKey];
               const isUpcoming =
                 new Date(ideas[0].data_agendada || "") > new Date();
@@ -168,17 +211,9 @@ export function TimelinePage() {
 
                   {/* Ideas for this date */}
                   <div className="space-y-4 pl-6 border-l-2 border-gray-200 dark:border-gray-700">
-                    {ideas.map((idea, ideaIndex) => {
-                      // Check if presentation is today
-                      const isToday = idea.data_agendada
-                        ? new Date(idea.data_agendada).toDateString() ===
-                          new Date().toDateString()
-                        : false;
-
-                      // Highlight if it's today or the very first presentation in the timeline
-                      const isFirstInTimeline =
-                        dateIndex === 0 && ideaIndex === 0;
-                      const shouldHighlight = isToday || isFirstInTimeline;
+                    {ideas.map((idea) => {
+                      // Highlight if it's one of the presentations that should be highlighted
+                      const shouldHighlight = highlightedIds.includes(idea.id);
 
                       return (
                         <TimelineCard

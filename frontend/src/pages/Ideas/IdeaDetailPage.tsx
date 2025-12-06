@@ -10,16 +10,12 @@ import {
   UserBadge,
   Button,
   Loading,
-  Avatar,
   Modal,
   DateTimePicker,
   ConfirmModal,
+  HypeDisplay,
 } from "@/components";
-import {
-  AnimatedPage,
-  AnimatedCounter,
-  AnimatedButton,
-} from "@/components/animations";
+import { AnimatedPage, AnimatedButton } from "@/components/animations";
 import { CommentsSection } from "@/components/common/CommentsSection";
 import { ideasService } from "@/services/ideas.service";
 import { formatDate } from "@/utils/formatDate";
@@ -313,40 +309,32 @@ export function IdeaDetailPage() {
           <div className="space-y-6">
             {/* Vote Card */}
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <div className="text-center mb-4">
-                <div className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  <AnimatedCounter value={idea.vote_count} />
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {idea.vote_count === 1 ? "voto" : "votos"}
-                </div>
+              <div className="text-center mb-6">
+                <HypeDisplay
+                  percentage={idea.vote_percentage}
+                  count={idea.vote_count}
+                  size="lg"
+                  animated={true}
+                  className="justify-center"
+                />
               </div>
 
               <div ref={voteButtonRef}>
                 <AnimatedButton
                   onClick={handleVote}
                   disabled={voteMutation.isPending}
-                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                     idea.has_voted
-                      ? "bg-orange-500 text-white dark:bg-orange-600 shadow-lg shadow-orange-500/30"
-                      : "bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 shadow-md hover:shadow-lg hover:shadow-orange-500/30"
+                      ? "bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/40 hover:shadow-xl hover:shadow-rose-500/50"
+                      : "bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 text-white hover:shadow-lg hover:shadow-rose-500/30 shadow-md"
                   } ${voteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {voteMutation.isPending ? (
                     <Loading />
                   ) : idea.has_voted ? (
-                    <>
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12.5 2.5c.39 0 .77.23.93.59l2.5 5.59 5.57.81c.78.11 1.09 1.03.52 1.56l-4.03 3.93.95 5.51c.13.77-.68 1.36-1.37 1l-4.98-2.62-4.98 2.62c-.69.36-1.5-.23-1.37-1l.95-5.51-4.03-3.93c-.57-.53-.26-1.45.52-1.56l5.57-.81 2.5-5.59c.16-.36.54-.59.93-.59z" />
-                      </svg>
-                      Hypado!
-                    </>
+                    <>👎 Remover Hype!</>
                   ) : (
-                    <>🔥 Hypar</>
+                    <>🤘 Hypar</>
                   )}
                 </AnimatedButton>
               </div>
@@ -403,7 +391,7 @@ export function IdeaDetailPage() {
                     {volunteerMutation.isPending ? (
                       <Loading />
                     ) : (
-                      "Voluntariar-se para apresentar"
+                      "Quero apresentar"
                     )}
                   </Button>
                 </div>
@@ -434,7 +422,7 @@ export function IdeaDetailPage() {
                         {formatDate(idea.data_agendada, "full")}
                       </span>
                     </div>
-                    {(idea.is_owner || idea.is_presenter) && (
+                    {permissions?.reschedulable && (
                       <Button
                         onClick={openScheduleModal}
                         className="w-full text-sm bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700"
@@ -457,7 +445,7 @@ export function IdeaDetailPage() {
                     )}
                   </div>
                 ) : (
-                  (idea.is_owner || idea.is_presenter) && (
+                  permissions?.reschedulable && (
                     <div>
                       <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                         Esta apresentação ainda não foi agendada
@@ -506,7 +494,7 @@ export function IdeaDetailPage() {
             </div>
 
             {/* Voters List */}
-            {idea.votos && idea.votos.length > 0 && (
+            {/*{idea.votos && idea.votos.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Votantes ({idea.votos.length})
@@ -527,7 +515,7 @@ export function IdeaDetailPage() {
                   )}
                 </div>
               </div>
-            )}
+            )}*/}
           </div>
         </div>
 

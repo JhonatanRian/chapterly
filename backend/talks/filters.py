@@ -12,7 +12,12 @@ class IdeaFilter(django_filters.FilterSet):
     # Filtros básicos
     status = django_filters.ChoiceFilter(
         field_name="status",
-        choices=Idea.STATUS_CHOICES,
+        choices=[
+            ("pendente", "Pendente"),
+            ("agendado", "Agendado"),
+            ("concluido", "Concluído"),
+        ],
+        method="filter_status",
         help_text="Filtrar por status",
     )
 
@@ -84,13 +89,33 @@ class IdeaFilter(django_filters.FilterSet):
     class Meta:
         model = Idea
         fields = [
-            "status",
             "prioridade",
             "autor",
             "apresentador",
             "tags",
             "precisa_apresentador",
         ]
+
+    def filter_status(self, queryset, name, value):
+        """
+        Filtra por status computado dinamicamente.
+        Como status é uma property, precisamos filtrar em memória.
+        """
+        from django.utils import timezone
+
+        if not value:
+            return queryset
+
+        now = timezone.now()
+
+        if value == "pendente":
+            return queryset.filter(data_agendada__isnull=True)
+        elif value == "agendado":
+            return queryset.filter(data_agendada__gt=now)
+        elif value == "concluido":
+            return queryset.filter(data_agendada__lte=now)
+
+        return queryset
 
     def filter_precisa_apresentador(self, queryset, name, value):
         """

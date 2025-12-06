@@ -27,16 +27,20 @@ class IdeaAdmin(admin.ModelAdmin):
         "titulo",
         "autor",
         "apresentador",
-        "status",
         "prioridade",
         "vote_count_display",
         "data_agendada",
         "created_at",
     ]
-    list_filter = ["status", "prioridade", "created_at", "data_agendada"]
+    list_filter = ["prioridade", "created_at", "data_agendada"]
     search_fields = ["titulo", "descricao", "autor__username", "apresentador__username"]
     filter_horizontal = ["tags"]
-    readonly_fields = ["created_at", "updated_at", "vote_count_display"]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+        "vote_count_display",
+        "status",
+    ]
     date_hierarchy = "created_at"
 
     fieldsets = (
@@ -65,7 +69,6 @@ class IdeaAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "tags",
-                    "status",
                     "prioridade",
                     "data_agendada",
                 )
@@ -75,6 +78,7 @@ class IdeaAdmin(admin.ModelAdmin):
             "Metadata",
             {
                 "fields": (
+                    "status",
                     "vote_count_display",
                     "created_at",
                     "updated_at",
@@ -88,6 +92,12 @@ class IdeaAdmin(admin.ModelAdmin):
         return obj.vote_count
 
     vote_count_display.short_description = "Votos"
+
+    def status(self, obj):
+        """Mostra o status computado como read-only"""
+        return obj.status
+
+    status.short_description = "Status"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

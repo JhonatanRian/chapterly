@@ -94,7 +94,8 @@ class IdeaListSerializer(serializers.ModelSerializer):
     autor = UserSerializer(read_only=True)
     apresentador = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    vote_count = serializers.IntegerField(source="votos.count", read_only=True)
+    vote_count = serializers.SerializerMethodField(read_only=True)
+    vote_percentage = serializers.SerializerMethodField(read_only=True)
     has_voted = serializers.SerializerMethodField()
     precisa_apresentador = serializers.BooleanField(read_only=True)
 
@@ -112,6 +113,7 @@ class IdeaListSerializer(serializers.ModelSerializer):
             "prioridade",
             "data_agendada",
             "vote_count",
+            "vote_percentage",
             "has_voted",
             "precisa_apresentador",
             "created_at",
@@ -126,6 +128,23 @@ class IdeaListSerializer(serializers.ModelSerializer):
             return Vote.objects.filter(user=request.user, idea=obj).exists()
         return False
 
+    def get_vote_count(self, obj: Idea) -> int:
+        """Retorna vote_count anotado ou calcula se não disponível"""
+        if hasattr(obj, "vote_count_annotated"):
+            return obj.vote_count_annotated  # type: ignore
+        return obj.votos.filter(user__is_active=True).count()
+
+    def get_vote_percentage(self, obj: Idea) -> str:
+        """Retorna porcentagem anotada ou calcula se não disponível"""
+        if hasattr(obj, "vote_percentage_decimal"):
+            percentage = float(obj.vote_percentage_decimal)  # type: ignore
+            return f"{percentage:.2f}%"
+
+        total_users = User.objects.filter(is_active=True).count()
+        total_votos = self.get_vote_count(obj)
+        result = (total_votos / total_users) * 100 if total_users > 0 else 0
+        return f"{result:.2f}%"
+
 
 class IdeaDetailSerializer(serializers.ModelSerializer):
     """Serializer completo para detalhes da ideia"""
@@ -135,10 +154,10 @@ class IdeaDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     votos = VoteSerializer(many=True, read_only=True)
     comentarios = serializers.SerializerMethodField()
-    vote_count = serializers.IntegerField(source="votos.count", read_only=True)
+    vote_count = serializers.SerializerMethodField(read_only=True)
+    vote_percentage = serializers.SerializerMethodField(read_only=True)
     has_voted = serializers.SerializerMethodField()
     precisa_apresentador = serializers.BooleanField(read_only=True)
-    is_owner = serializers.SerializerMethodField()
     is_presenter = serializers.SerializerMethodField()
 
     class Meta:
@@ -158,9 +177,9 @@ class IdeaDetailSerializer(serializers.ModelSerializer):
             "votos",
             "comentarios",
             "vote_count",
+            "vote_percentage",
             "has_voted",
             "precisa_apresentador",
-            "is_owner",
             "is_presenter",
             "created_at",
             "updated_at",
@@ -179,19 +198,29 @@ class IdeaDetailSerializer(serializers.ModelSerializer):
             return Vote.objects.filter(user=request.user, idea=obj).exists()
         return False
 
-    def get_is_owner(self, obj):
-        """Verifica se o usuário atual é o autor"""
-        request = self.context.get("request")
-        if request and request.user.is_authenticated:
-            return obj.autor == request.user
-        return False
-
     def get_is_presenter(self, obj):
         """Verifica se o usuário atual é o apresentador"""
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             return obj.apresentador == request.user
         return False
+
+    def get_vote_count(self, obj: Idea) -> int:
+        """Retorna vote_count anotado ou calcula se não disponível"""
+        if hasattr(obj, "vote_count_annotated"):
+            return obj.vote_count_annotated  # type: ignore
+        return obj.votos.filter(user__is_active=True).count()
+
+    def get_vote_percentage(self, obj: Idea) -> str:
+        """Retorna porcentagem anotada ou calcula se não disponível"""
+        if hasattr(obj, "vote_percentage_decimal"):
+            percentage = float(obj.vote_percentage_decimal)  # type: ignore
+            return f"{percentage:.2f}%"
+
+        total_users = User.objects.filter(is_active=True).count()
+        total_votos = self.get_vote_count(obj)
+        result = (total_votos / total_users) * 100 if total_users > 0 else 0
+        return f"{result:.2f}%"
 
 
 class IdeaCreateUpdateSerializer(serializers.ModelSerializer):
@@ -260,7 +289,7 @@ class IdeaCreateUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Atualiza uma ideia existente"""
-        quero_apresentar = validated_data.pop("quero_apresentar", None)
+        validated_data.pop("quero_apresentar", None)
         tags = validated_data.pop("tags", None)
 
         # Atualiza campos básicos
@@ -273,6 +302,25 @@ class IdeaCreateUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class RescheduleSerializer(serializers.Serializer):
+    """Serializer para reagendar apresentação"""
+
+    data_agendada = serializers.DateTimeField(
+        required=True,
+        help_text="Data e hora da apresentação no formato ISO 8601",
+    )
+
+    def validate_data_agendada(self, value):
+        """Valida que a data é futura"""
+        from django.utils import timezone
+
+        if value < timezone.now():
+            raise serializers.ValidationError(
+                "A data da apresentação deve ser no futuro."
+            )
+        return value
 
 
 class NotificationSerializer(serializers.ModelSerializer):

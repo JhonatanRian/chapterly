@@ -3,6 +3,7 @@ import { cn } from "@/utils/cn";
 import { formatDate } from "@/utils/formatDate";
 import { StatusBadge } from "../common/StatusBadge";
 import { Avatar } from "../common/Avatar";
+import { HypeDisplay } from "../common/HypeDisplay";
 
 interface TimelineCardProps {
   idea: IdeaListItem;
@@ -167,23 +168,13 @@ export function TimelineCard({
             </span>
           )}
 
-          {/* Vote count */}
-          <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 15l7-7 7 7"
-              />
-            </svg>
-            <span className="text-xs">{idea.vote_count}</span>
-          </div>
+          {/* Hype Display */}
+          <HypeDisplay
+            percentage={idea.vote_percentage}
+            count={idea.vote_count}
+            size="sm"
+            animated={true}
+          />
 
           {/* Time indicator for upcoming */}
           {isUpcoming && idea.data_agendada && (

@@ -31,6 +31,7 @@ export {
   IndeterminateProgressBar,
   CircularProgress,
   StepProgress,
+  HypeDisplay,
 } from "./common";
 
 // Buttons

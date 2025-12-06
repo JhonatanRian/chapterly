@@ -1,6 +1,11 @@
+from typing import TYPE_CHECKING
+
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.db.models import Case, Count, DecimalField, F, IntegerField, Q, When
+from django.utils import timezone
 from django.utils.text import slugify
 
 
@@ -28,14 +33,67 @@ class Tag(models.Model):
         return self.nome
 
 
+class IdeaQuerySet(models.QuerySet):
+    """QuerySet customizado para Idea com otimizações"""
+
+    def with_vote_stats(self):
+        """
+        Anota o queryset com estatísticas de votos otimizadas.
+
+        Adiciona:
+        - vote_count_annotated: Total de votos (apenas usuários ativos)
+        - vote_percentage_decimal: Porcentagem de votos em decimal (0-100)
+        """
+        User = get_user_model()
+        total_active_users = User.objects.filter(is_active=True).count()
+
+        if total_active_users == 0:
+            return self.annotate(
+                vote_count_annotated=Count(
+                    "votos",
+                    filter=Q(votos__user__is_active=True),
+                    distinct=True,
+                ),
+                vote_percentage_decimal=0.0,
+            )
+
+        return self.annotate(
+            vote_count_annotated=Count(
+                "votos",
+                filter=Q(votos__user__is_active=True),
+                distinct=True,
+            ),
+            vote_percentage_decimal=Case(
+                When(
+                    vote_count_annotated__gt=0,
+                    then=F("vote_count_annotated") * 100.0 / total_active_users,
+                ),
+                default=0.0,
+                output_field=DecimalField(max_digits=5, decimal_places=2),
+            ),
+        )
+
+    def optimized(self):
+        """Otimiza o queryset com select_related e prefetch_related"""
+        return self.select_related("autor", "apresentador").prefetch_related(
+            "tags", "votos"
+        )
+
+
+class IdeaManager(models.Manager):
+    """Manager customizado para Idea com otimizações"""
+
+    def get_queryset(self):
+        """Retorna queryset otimizado por padrão"""
+        return IdeaQuerySet(self.model, using=self._db).optimized()
+
+    def with_vote_stats(self):
+        """Retorna queryset otimizado com estatísticas de votos"""
+        return self.get_queryset().with_vote_stats()
+
+
 class Idea(models.Model):
     """Modelo principal para ideias de apresentação"""
-
-    STATUS_CHOICES = [
-        ("pendente", "Pendente"),
-        ("agendado", "Agendado"),
-        ("concluido", "Concluído"),
-    ]
 
     PRIORITY_CHOICES = [
         ("baixa", "Baixa"),
@@ -73,8 +131,7 @@ class Idea(models.Model):
     )
     tags = models.ManyToManyField(Tag, related_name="ideias", blank=True)
 
-    # Status e prioridade
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pendente")
+    # Prioridade
     prioridade = models.CharField(
         max_length=20, choices=PRIORITY_CHOICES, default="media"
     )
@@ -86,18 +143,44 @@ class Idea(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Manager customizado
+    objects = IdeaManager()
+
     class Meta:
         verbose_name = "Ideia"
         verbose_name_plural = "Ideias"
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["-created_at"]),
-            models.Index(fields=["status"]),
             models.Index(fields=["data_agendada"]),
         ]
 
     def __str__(self):
         return self.titulo
+
+    # Anotações dinâmicas (adicionadas via queryset.annotate())
+    if TYPE_CHECKING:
+        vote_count_annotated: int
+        vote_percentage_decimal: float
+
+    @property
+    def status(self):
+        """
+        Calcula o status dinamicamente baseado em data_agendada.
+
+        - "pendente": data_agendada é NULL
+        - "agendado": data_agendada > now()
+        - "concluido": data_agendada <= now()
+        """
+        if self.data_agendada is None:
+            return "pendente"
+
+        now = timezone.now()
+
+        if self.data_agendada > now:
+            return "agendado"
+
+        return "concluido"
 
     @property
     def vote_count(self):

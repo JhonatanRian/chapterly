@@ -36,3 +36,4 @@ export {
   CircularProgress,
   StepProgress,
 } from "./ProgressBar";
+export { HypeDisplay } from "./HypeDisplay";

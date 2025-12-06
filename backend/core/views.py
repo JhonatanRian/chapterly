@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -126,17 +127,20 @@ class UserStatsView(APIView):
         apresentacoes = user.ideias_apresentando.count()
         votos_dados = user.votos.count()
 
-        # Ideias por status
-        ideias_pendentes = user.ideias_criadas.filter(status="pendente").count()
-        ideias_agendadas = user.ideias_criadas.filter(status="agendado").count()
-        ideias_concluidas = user.ideias_criadas.filter(status="concluido").count()
+        # Ideias por status (calculado dinamicamente via property)
+        now = timezone.now()
+        ideias_pendentes = user.ideias_criadas.filter(
+            data_agendada__isnull=True
+        ).count()
+        ideias_agendadas = user.ideias_criadas.filter(data_agendada__gt=now).count()
+        ideias_concluidas = user.ideias_criadas.filter(data_agendada__lte=now).count()
 
-        # Apresentações por status
+        # Apresentações por status (calculado dinamicamente via property)
         apresentacoes_agendadas = user.ideias_apresentando.filter(
-            status="agendado"
+            data_agendada__gt=now
         ).count()
         apresentacoes_concluidas = user.ideias_apresentando.filter(
-            status="concluido"
+            data_agendada__lte=now
         ).count()
 
         # Votos recebidos nas ideias criadas
