@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { handleApiError } from "@/utils/errorHandler";
 import {
   MainLayout,
   Loading,
@@ -58,7 +59,7 @@ export function CalendarPage() {
       if (context?.previousData) {
         queryClient.setQueryData(["timeline-ideas"], context.previousData);
       }
-      toast.error("Erro ao reagendar apresentação");
+      handleApiError(error, "Erro ao reagendar apresentação");
       console.error("Reschedule error:", error);
     },
     onSuccess: (data) => {

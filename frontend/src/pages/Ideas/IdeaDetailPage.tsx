@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -12,16 +11,15 @@ import {
   Loading,
   Avatar,
 } from "@/components";
-import type { CommentsSection } from "@/components/common/CommentsSection";
+import { CommentsSection } from "@/components/common/CommentsSection";
 import { ideasService } from "@/services/ideas.service";
-import { useAuthStore } from "@/stores/authStore";
 import { formatDate } from "@/utils/formatDate";
+import { handleApiError } from "@/utils/errorHandler";
 
 export function IdeaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
 
   // Fetch idea details
   const { data: idea, isLoading } = useQuery({
@@ -38,7 +36,7 @@ export function IdeaDetailPage() {
       toast.success("Voto registrado!");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Erro ao votar");
+      handleApiError(error, "Erro ao votar");
     },
   });
 
@@ -50,7 +48,7 @@ export function IdeaDetailPage() {
       toast.success("Você se voluntariou para apresentar esta ideia!");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Erro ao voluntariar-se");
+      handleApiError(error, "Erro ao voluntariar-se");
     },
   });
 
@@ -62,9 +60,7 @@ export function IdeaDetailPage() {
       toast.success("Você removeu sua candidatura");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.detail || "Erro ao remover candidatura",
-      );
+      handleApiError(error, "Erro ao remover candidatura");
     },
   });
 

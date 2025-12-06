@@ -13,7 +13,6 @@ import {
   ImageUpload,
   RichTextEditor,
   TagSelector,
-  DateTimePicker,
   Loading,
   ConfirmModal,
 } from "@/components";
@@ -110,25 +109,12 @@ export function IdeaFormPage() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: IdeaFormData) => {
-      const formData = new FormData();
-      formData.append("titulo", data.titulo);
-      formData.append("descricao", data.descricao);
-      formData.append("conteudo", data.conteudo);
-
       // Ensure prioridade is always set
-      const prioridade = data.prioridade || "media";
-      formData.append("prioridade", prioridade);
-
-      if (data.imagem) {
-        formData.append("imagem", data.imagem);
-      }
-      data.tags.forEach((tagId) => {
-        formData.append("tags", String(tagId));
-      });
-      if (data.quero_apresentar) {
-        formData.append("quero_apresentar", "true");
-      }
-      return ideasService.createIdea(formData);
+      const cleanData = {
+        ...data,
+        prioridade: data.prioridade || "media",
+      };
+      return ideasService.createIdea(cleanData);
     },
     onSuccess: (data) => {
       toast.success("Ideia criada com sucesso!");
@@ -143,22 +129,12 @@ export function IdeaFormPage() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: (data: IdeaFormData) => {
-      const formData = new FormData();
-      formData.append("titulo", data.titulo);
-      formData.append("descricao", data.descricao);
-      formData.append("conteudo", data.conteudo);
-
       // Ensure prioridade is always set
-      const prioridade = data.prioridade || "media";
-      formData.append("prioridade", prioridade);
-
-      if (data.imagem) {
-        formData.append("imagem", data.imagem);
-      }
-      data.tags.forEach((tagId) => {
-        formData.append("tags", String(tagId));
-      });
-      return ideasService.updateIdea(Number(id), formData);
+      const cleanData = {
+        ...data,
+        prioridade: data.prioridade || "media",
+      };
+      return ideasService.updateIdea(Number(id), cleanData);
     },
     onSuccess: () => {
       toast.success("Ideia atualizada com sucesso!");
