@@ -128,7 +128,7 @@ export function IdeaFormPage() {
       navigate(`/ideas/${data.id}`);
     },
     onError: (error: any) => {
-      handleApiError(error, "Erro ao criar ideia");
+      handleApiError(error, "Erro ao criar tema");
     },
   });
 
@@ -236,7 +236,7 @@ export function IdeaFormPage() {
           </button>
 
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {isEditMode ? "Editar Ideia" : "Nova Ideia"}
+            {isEditMode ? "Editar Tema" : "Novo Tema"}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             {isEditMode
@@ -429,7 +429,7 @@ export function IdeaFormPage() {
                   ) : isEditMode ? (
                     "Salvar Alterações"
                   ) : (
-                    "Criar Ideia"
+                    "Criar Tema"
                   )}
                 </Button>
               </div>

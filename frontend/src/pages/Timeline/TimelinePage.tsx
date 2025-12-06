@@ -129,7 +129,7 @@ export function TimelinePage() {
         {/* Timeline */}
         <div className="space-y-8">
           {dates.length > 0 ? (
-            dates.map((dateKey) => {
+            dates.map((dateKey, dateIndex) => {
               const ideas = groupedByDate[dateKey];
               const isUpcoming =
                 new Date(ideas[0].data_agendada || "") > new Date();
@@ -168,14 +168,28 @@ export function TimelinePage() {
 
                   {/* Ideas for this date */}
                   <div className="space-y-4 pl-6 border-l-2 border-gray-200 dark:border-gray-700">
-                    {ideas.map((idea) => (
-                      <TimelineCard
-                        key={idea.id}
-                        idea={idea}
-                        onClick={() => navigate(`/ideas/${idea.id}`)}
-                        showDate={false}
-                      />
-                    ))}
+                    {ideas.map((idea, ideaIndex) => {
+                      // Check if presentation is today
+                      const isToday = idea.data_agendada
+                        ? new Date(idea.data_agendada).toDateString() ===
+                          new Date().toDateString()
+                        : false;
+
+                      // Highlight if it's today or the very first presentation in the timeline
+                      const isFirstInTimeline =
+                        dateIndex === 0 && ideaIndex === 0;
+                      const shouldHighlight = isToday || isFirstInTimeline;
+
+                      return (
+                        <TimelineCard
+                          key={idea.id}
+                          idea={idea}
+                          onClick={() => navigate(`/ideas/${idea.id}`)}
+                          showDate={false}
+                          highlighted={shouldHighlight}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               );

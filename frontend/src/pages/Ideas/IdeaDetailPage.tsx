@@ -13,6 +13,7 @@ import {
   Avatar,
   Modal,
   DateTimePicker,
+  ConfirmModal,
 } from "@/components";
 import {
   AnimatedPage,
@@ -28,6 +29,7 @@ import {
   updateIdeaInCache,
 } from "@/utils/queryInvalidation";
 import { useConfetti } from "@/hooks/useConfetti";
+import { useIdeaPermissions } from "@/hooks/useIdeaPermissions";
 
 export function IdeaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +37,7 @@ export function IdeaDetailPage() {
   const queryClient = useQueryClient();
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<string>("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const voteButtonRef = useRef<HTMLDivElement>(null);
   const { fireExplosion } = useConfetti();
 
@@ -44,6 +47,9 @@ export function IdeaDetailPage() {
     queryFn: () => ideasService.getIdea(Number(id)),
     enabled: !!id,
   });
+
+  // Fetch user permissions for this idea
+  const { data: permissions } = useIdeaPermissions(id);
 
   // Vote mutation
   const voteMutation = useMutation({
@@ -77,7 +83,7 @@ export function IdeaDetailPage() {
     onSuccess: () => {
       // Invalida todas as queries relacionadas para sincronizar
       invalidateIdeaQueries(queryClient, Number(id));
-      toast.success("Você se voluntariou para apresentar esta ideia!");
+      toast.success("Você se voluntariou para apresentar este tema!");
     },
     onError: (error: any) => {
       handleApiError(error, "Erro ao voluntariar-se");
@@ -139,6 +145,22 @@ export function IdeaDetailPage() {
     setShowScheduleModal(true);
   };
 
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: () => ideasService.deleteIdea(Number(id)),
+    onSuccess: () => {
+      toast.success("Tema excluído com sucesso!");
+      navigate("/ideas");
+    },
+    onError: (error: any) => {
+      handleApiError(error, "Erro ao excluir tema");
+    },
+  });
+
+  const handleDelete = () => {
+    deleteMutation.mutate();
+  };
+
   if (isLoading) {
     return (
       <MainLayout>
@@ -154,9 +176,9 @@ export function IdeaDetailPage() {
       <MainLayout>
         <div className="text-center py-16">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            Ideia não encontrada
+            Tema não encontrado
           </h2>
-          <Button onClick={() => navigate("/ideas")}>Voltar para ideias</Button>
+          <Button onClick={() => navigate("/ideas")}>Voltar para temas</Button>
         </div>
       </MainLayout>
     );
@@ -165,26 +187,64 @@ export function IdeaDetailPage() {
   return (
     <MainLayout>
       <AnimatedPage>
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {/* Header with Back Button and Action Buttons */}
+        <div className="flex items-center justify-between gap-4 mb-6">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          <span>Voltar</span>
-        </button>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <span>Voltar</span>
+          </button>
+
+          {/* Action Buttons - Edit and Delete */}
+          {(permissions?.editable || permissions?.deletable) && (
+            <div className="flex gap-2">
+              {permissions?.editable && (
+                <Button
+                  onClick={() => navigate(`/ideas/${id}/edit`)}
+                  className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 flex items-center gap-2"
+                >
+                  ✏️ Editar
+                </Button>
+              )}
+              {permissions?.deletable && (
+                <Button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 flex items-center gap-2"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Deletar Tema
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -202,19 +262,9 @@ export function IdeaDetailPage() {
 
             {/* Title & Meta */}
             <div>
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-                  {idea.titulo}
-                </h1>
-                {idea.is_owner && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate(`/ideas/${id}/edit`)}
-                  >
-                    Editar
-                  </Button>
-                )}
-              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                {idea.titulo}
+              </h1>
 
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <StatusBadge status={idea.status} />
@@ -493,7 +543,7 @@ export function IdeaDetailPage() {
         >
           <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Escolha a data e hora para a apresentação desta ideia.
+              Escolha a data e hora para a apresentação deste tema.
             </p>
 
             <DateTimePicker
@@ -532,6 +582,19 @@ export function IdeaDetailPage() {
             </div>
           </div>
         </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
+          title="Deletar Tema"
+          message={`Tem certeza que deseja excluir "${idea?.titulo}"? Todos os comentários e votos também serão removidos. Esta ação não pode ser desfeita.`}
+          confirmText="Deletar"
+          cancelText="Cancelar"
+          confirmVariant="danger"
+          isLoading={deleteMutation.isPending}
+        />
       </AnimatedPage>
     </MainLayout>
   );

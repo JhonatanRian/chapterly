@@ -107,6 +107,58 @@ class IdeaViewSet(viewsets.ModelViewSet):
         serializer.save(autor=self.request.user)
 
     @extend_schema(
+        summary="Verificar permissões",
+        description="Retorna as permissões do usuário atual para editar e deletar a ideia",
+        request=None,
+        responses={
+            200: {
+                "description": "Permissões do usuário",
+                "examples": {
+                    "application/json": {
+                        "editable": True,
+                        "deletable": True,
+                    }
+                },
+            }
+        },
+    )
+    @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated])
+    def permissions(self, request, pk=None):
+        """
+        GET /ideas/{id}/permissions/
+        Retorna as permissões do usuário para editar e deletar a ideia
+
+        Regras:
+        - Editar: Criador OR Apresentador OR Admin
+        - Deletar: Criador OR Admin
+        """
+        idea = self.get_object()
+        user = request.user
+
+        # Admin/superuser tem todas as permissões
+        is_admin = user.is_staff or user.is_superuser
+
+        # Verificar se é criador
+        is_creator = idea.autor == user
+
+        # Verificar se é apresentador
+        is_presenter = idea.apresentador == user
+
+        # Editar: Criador OR Apresentador OR Admin
+        editable = is_creator or is_presenter or is_admin
+
+        # Deletar: Criador OR Admin (não apresentador)
+        deletable = is_creator or is_admin
+
+        return Response(
+            {
+                "editable": editable,
+                "deletable": deletable,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
         summary="Votar em ideia",
         description="Toggle voto: adiciona se não votou, remove se já votou",
         request=None,
@@ -268,10 +320,19 @@ class IdeaViewSet(viewsets.ModelViewSet):
             .order_by("data_agendada")
         )
 
+        # Paginar resultados
+        page = self.paginate_queryset(timeline_ideas)
+        if page is not None:
+            serializer = IdeaListSerializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        # Fallback se paginação não estiver configurada
         serializer = IdeaListSerializer(
             timeline_ideas, many=True, context={"request": request}
         )
-        return Response(serializer.data)
+        return Response({"results": serializer.data, "count": len(serializer.data)})
 
     @extend_schema(
         summary="Reagendar apresentação",

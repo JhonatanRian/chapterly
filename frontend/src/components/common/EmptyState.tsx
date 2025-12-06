@@ -125,14 +125,14 @@ export function EmptyState({
 }
 
 /**
- * EmptyState específico para lista de ideias vazia
+ * EmptyState específico para lista de temas vazia
  */
 export function NoIdeasEmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <EmptyState
       icon={
         <svg
-          className="w-24 h-24 text-indigo-400 dark:text-indigo-500"
+          className="w-16 h-16"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -140,15 +140,15 @@ export function NoIdeasEmptyState({ onCreate }: { onCreate: () => void }) {
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={1.5}
+            strokeWidth={2}
             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
           />
         </svg>
       }
-      title="Nenhuma ideia encontrada"
-      description="Comece compartilhando sua primeira ideia para a próxima apresentação!"
+      title="Nenhum tema encontrado"
+      description="Comece compartilhando seu primeiro tema para a próxima apresentação!"
       action={{
-        label: "Nova Ideia",
+        label: "Novo Tema",
         onClick: onCreate,
         variant: "primary",
       }}
@@ -218,9 +218,9 @@ export function NoPresentationsEmptyState({
         </svg>
       }
       title="Nenhuma apresentação"
-      description="Voluntarie-se para apresentar uma ideia e compartilhe seu conhecimento!"
+      description="Voluntarie-se para apresentar um tema e compartilhe seu conhecimento!"
       action={{
-        label: "Ver Ideias Disponíveis",
+        label: "Ver Temas Disponíveis",
         onClick: onVolunteer,
         variant: "primary",
       }}
@@ -254,9 +254,9 @@ export function NoTimelineEmptyState({
         </svg>
       }
       title="Nenhuma atividade agendada"
-      description="Não há apresentações agendadas no momento. Verifique as ideias disponíveis!"
+      description="Não há apresentações agendadas no momento. Verifique os temas disponíveis!"
       action={{
-        label: "Ver Todas as Ideias",
+        label: "Ver Todos os Temas",
         onClick: onViewIdeas,
         variant: "primary",
       }}
@@ -286,7 +286,7 @@ export function NoCommentsEmptyState() {
         </svg>
       }
       title="Sem comentários ainda"
-      description="Seja o primeiro a comentar e dar seu feedback sobre esta ideia!"
+      description="Seja o primeiro a comentar e dar seu feedback sobre este tema!"
       className="py-12"
     />
   );

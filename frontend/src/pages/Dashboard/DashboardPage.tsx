@@ -74,7 +74,7 @@ export function DashboardPage() {
           <AnimatedGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <AnimatedGridItem>
               <StatsCard
-                title="Total de Ideias"
+                title="Total de Temas"
                 value={stats?.total_ideias || 0}
                 icon={
                   <svg
@@ -283,11 +283,11 @@ export function DashboardPage() {
               )
             )}
 
-            {/* Timeline */}
+            {/* Próximas Apresentações */}
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Atividades Recentes
+                  Próximas Apresentações
                 </h2>
                 <button
                   onClick={() => navigate("/timeline")}
@@ -305,14 +305,26 @@ export function DashboardPage() {
                     <TimelineCardSkeleton />
                   </>
                 ) : timeline.length > 0 ? (
-                  timeline.map((idea) => (
-                    <TimelineCard
-                      key={idea.id}
-                      idea={idea}
-                      onClick={() => navigate(`/ideas/${idea.id}`)}
-                      showDate
-                    />
-                  ))
+                  timeline.map((idea, index) => {
+                    // Check if presentation is today
+                    const isToday = idea.data_agendada
+                      ? new Date(idea.data_agendada).toDateString() ===
+                        new Date().toDateString()
+                      : false;
+
+                    // Highlight if it's today or the very first (next) presentation
+                    const shouldHighlight = isToday || index === 0;
+
+                    return (
+                      <TimelineCard
+                        key={idea.id}
+                        idea={idea}
+                        onClick={() => navigate(`/ideas/${idea.id}`)}
+                        showDate
+                        highlighted={shouldHighlight}
+                      />
+                    );
+                  })
                 ) : (
                   <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <svg
@@ -325,11 +337,11 @@ export function DashboardPage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
                     <p className="text-gray-500 dark:text-gray-400">
-                      Nenhuma atividade recente
+                      Nenhuma apresentação agendada
                     </p>
                   </div>
                 )}
@@ -347,7 +359,7 @@ export function DashboardPage() {
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Ideias criadas
+                    Temas criados
                   </span>
                   <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {userStats?.ideias_criadas || 0}
@@ -407,10 +419,10 @@ export function DashboardPage() {
                   </div>
                   <div className="flex-1 text-left">
                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                      Nova Ideia
+                      Novo Tema
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Compartilhe sua ideia
+                      Compartilhe seu tema
                     </p>
                   </div>
                 </button>
@@ -439,7 +451,7 @@ export function DashboardPage() {
                       Voluntariar-se
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {stats?.precisa_apresentador || 0} ideias precisam
+                      {stats?.precisa_apresentador || 0} temas precisam
                     </p>
                   </div>
                 </button>
@@ -480,7 +492,7 @@ export function DashboardPage() {
         {/* FAB for new idea */}
         <FAB
           onClick={() => setShowNewIdeaModal(true)}
-          label="Nova Ideia"
+          label="Novo Tema"
           icon={
             <svg
               className="w-6 h-6"
@@ -503,7 +515,7 @@ export function DashboardPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md">
               <p className="text-gray-900 dark:text-gray-100">
-                Modal de Nova Ideia - Em breve!
+                Modal de Novo Tema - Em breve!
               </p>
               <button
                 onClick={() => setShowNewIdeaModal(false)}

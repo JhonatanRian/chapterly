@@ -117,10 +117,10 @@ export function IdeasListPage() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Ideias
+            Temas
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Explore e vote nas ideias para as próximas apresentações
+            Explore e vote nos temas para as próximas apresentações
           </p>
         </div>
 
@@ -165,7 +165,6 @@ export function IdeasListPage() {
               <option value="pendente">Pendente</option>
               <option value="agendado">Agendado</option>
               <option value="concluido">Concluído</option>
-              <option value="cancelado">Cancelado</option>
             </select>
 
             {/* Priority Filter */}

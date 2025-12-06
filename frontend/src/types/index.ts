@@ -69,8 +69,8 @@ export interface Tag {
 }
 
 // Idea Types
-export type IdeaStatus = 'pendente' | 'agendado' | 'concluido' | 'cancelado';
-export type IdeaPriority = 'baixa' | 'media' | 'alta';
+export type IdeaStatus = "pendente" | "agendado" | "concluido";
+export type IdeaPriority = "baixa" | "media" | "alta";
 
 export interface IdeaListItem {
   id: number;
@@ -127,7 +127,12 @@ export interface IdeaFormData {
 }
 
 // Notification Types
-export type NotificationType = 'voto' | 'voluntario' | 'agendamento' | 'comentario' | 'mencao';
+export type NotificationType =
+  | "voto"
+  | "voluntario"
+  | "agendamento"
+  | "comentario"
+  | "mencao";
 
 export interface Notification {
   id: number;
@@ -207,7 +212,7 @@ export interface AuthStore {
 }
 
 export interface ThemeStore {
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
   toggleTheme: () => void;
-  setTheme: (theme: 'light' | 'dark') => void;
+  setTheme: (theme: "light" | "dark") => void;
 }

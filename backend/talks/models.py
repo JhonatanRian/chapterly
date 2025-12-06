@@ -35,7 +35,6 @@ class Idea(models.Model):
         ("pendente", "Pendente"),
         ("agendado", "Agendado"),
         ("concluido", "Concluído"),
-        ("cancelado", "Cancelado"),
     ]
 
     PRIORITY_CHOICES = [

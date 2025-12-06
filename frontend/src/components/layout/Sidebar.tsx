@@ -1,6 +1,6 @@
-import { cn } from '@/utils/cn';
-import { NavLink } from 'react-router-dom';
-import { useState } from 'react';
+import { cn } from "@/utils/cn";
+import { NavLink } from "react-router-dom";
+import { useState } from "react";
 
 interface NavItem {
   label: string;
@@ -18,10 +18,15 @@ export function Sidebar({ className }: SidebarProps) {
 
   const navItems: NavItem[] = [
     {
-      label: 'Dashboard',
-      path: '/dashboard',
+      label: "Dashboard",
+      path: "/dashboard",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -32,10 +37,15 @@ export function Sidebar({ className }: SidebarProps) {
       ),
     },
     {
-      label: 'Ideias',
-      path: '/ideas',
+      label: "Temas",
+      path: "/ideas",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -46,10 +56,15 @@ export function Sidebar({ className }: SidebarProps) {
       ),
     },
     {
-      label: 'Calendário',
-      path: '/calendar',
+      label: "Calendário",
+      path: "/calendar",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -60,10 +75,15 @@ export function Sidebar({ className }: SidebarProps) {
       ),
     },
     {
-      label: 'Timeline',
-      path: '/timeline',
+      label: "Timeline",
+      path: "/timeline",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -74,10 +94,15 @@ export function Sidebar({ className }: SidebarProps) {
       ),
     },
     {
-      label: 'Perfil',
-      path: '/profile',
+      label: "Perfil",
+      path: "/profile",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -92,10 +117,10 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700',
-        'transition-all duration-300 z-30',
-        isCollapsed ? 'w-16' : 'w-64',
-        className
+        "fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700",
+        "transition-all duration-300 z-30",
+        isCollapsed ? "w-16" : "w-64",
+        className,
       )}
     >
       {/* Header */}
@@ -114,14 +139,17 @@ export function Sidebar({ className }: SidebarProps) {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            'p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
-            'text-gray-500 dark:text-gray-400',
-            isCollapsed && 'mx-auto'
+            "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+            "text-gray-500 dark:text-gray-400",
+            isCollapsed && "mx-auto",
           )}
-          aria-label={isCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
+          aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
         >
           <svg
-            className={cn('w-5 h-5 transition-transform', isCollapsed && 'rotate-180')}
+            className={cn(
+              "w-5 h-5 transition-transform",
+              isCollapsed && "rotate-180",
+            )}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -144,12 +172,12 @@ export function Sidebar({ className }: SidebarProps) {
             to={item.path}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-100 dark:hover:bg-gray-700',
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                "text-gray-700 dark:text-gray-300",
+                "hover:bg-gray-100 dark:hover:bg-gray-700",
                 isActive &&
-                  'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium',
-                isCollapsed && 'justify-center'
+                  "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium",
+                isCollapsed && "justify-center",
               )
             }
             title={isCollapsed ? item.label : undefined}
@@ -160,7 +188,7 @@ export function Sidebar({ className }: SidebarProps) {
                 <span className="text-sm">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
                   <span className="px-2 py-0.5 bg-indigo-600 text-white text-xs font-medium rounded-full">
-                    {item.badge > 99 ? '99+' : item.badge}
+                    {item.badge > 99 ? "99+" : item.badge}
                   </span>
                 )}
               </div>

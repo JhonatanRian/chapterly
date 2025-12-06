@@ -248,7 +248,7 @@ export function CalendarPage() {
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                Nova Ideia
+                Novo Tema
               </Button>
 
               <Button
@@ -256,7 +256,7 @@ export function CalendarPage() {
                 className="w-full"
                 variant="secondary"
               >
-                Ver Todas as Ideias
+                Ver Todos os Temas
               </Button>
 
               <Button
@@ -276,6 +276,7 @@ export function CalendarPage() {
             isOpen={isModalOpen}
             onClose={handleCloseModal}
             title={selectedIdea.titulo}
+            size="lg"
           >
             <div className="space-y-4">
               {/* Image */}
@@ -354,10 +355,13 @@ export function CalendarPage() {
 
                 <div className="col-span-2">
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Votos
+                    Hype
                   </h4>
-                  <p className="text-gray-900 dark:text-gray-100">
-                    ❤️ {selectedIdea.vote_count || 0}
+                  <p className="text-gray-900 dark:text-gray-100 flex items-center gap-1">
+                    <span className="text-lg">🔥</span>
+                    <span className="font-semibold">
+                      {selectedIdea.vote_count || 0}
+                    </span>
                   </p>
                 </div>
               </div>

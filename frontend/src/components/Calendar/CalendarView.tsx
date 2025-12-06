@@ -26,7 +26,6 @@ const STATUS_COLORS: Record<string, string> = {
   pendente: "#94a3b8", // slate-400
   agendado: "#3b82f6", // blue-500
   concluido: "#10b981", // green-500
-  cancelado: "#ef4444", // red-500
 };
 
 // Priority color mapping (border)
@@ -130,24 +129,51 @@ export function CalendarView({
         }}
         eventContent={(arg) => {
           const idea = arg.event.extendedProps.idea as IdeaListItem;
+          const displayText = idea.apresentador
+            ? `${arg.event.title} - ${idea.apresentador.username}`
+            : arg.event.title;
+
           return (
-            <div className="fc-event-main-frame">
-              <div className="fc-event-time">{arg.timeText}</div>
+            <div
+              className="fc-event-main-frame group relative"
+              title={`${idea.titulo}${idea.apresentador ? ` - ${idea.apresentador.username}` : ""} | Status: ${idea.status} | Prioridade: ${idea.prioridade}`}
+            >
+              <div className="fc-event-time text-xs">{arg.timeText}</div>
               <div className="fc-event-title-container">
-                <div className="fc-event-title fc-sticky truncate">
-                  {arg.event.title}
-                  {idea.apresentador && (
-                    <span className="ml-1 text-xs opacity-75">
-                      👤 {idea.apresentador.username}
-                    </span>
-                  )}
+                <div className="fc-event-title fc-sticky truncate text-sm font-medium">
+                  {displayText}
                 </div>
+              </div>
+
+              {/* Tooltip on hover */}
+              <div className="hidden group-hover:block absolute z-50 left-0 top-full mt-1 min-w-[250px] max-w-[300px] p-3 bg-gray-900 dark:bg-gray-700 text-white rounded-lg shadow-xl border border-gray-700 dark:border-gray-600">
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <p className="font-semibold text-sm mb-1">{idea.titulo}</p>
+                  </div>
+                  {idea.apresentador && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400">👤</span>
+                      <span>{idea.apresentador.username}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-800 dark:bg-gray-600 capitalize">
+                      {idea.status}
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-800 dark:bg-gray-600 capitalize">
+                      {idea.prioridade}
+                    </span>
+                  </div>
+                </div>
+                {/* Tooltip arrow */}
+                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 dark:bg-gray-700 border-l border-t border-gray-700 dark:border-gray-600 transform rotate-45"></div>
               </div>
             </div>
           );
         }}
         // Custom styling
-        eventClassNames="cursor-pointer hover:opacity-80 transition-opacity"
+        eventClassNames="cursor-pointer hover:opacity-90 transition-all"
       />
 
       {/* Custom CSS for FullCalendar dark mode */}
@@ -212,14 +238,41 @@ export function CalendarView({
           background-color: #374151;
         }
 
-        /* Event styling */
+        /* Event styling - enhanced visibility */
         .fc-event {
           border-width: 2px !important;
-          border-left-width: 4px !important;
+          border-left-width: 5px !important;
+          border-radius: 4px !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .fc-event:hover {
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15) !important;
+          transform: translateY(-1px);
         }
 
         .fc-event-main {
-          padding: 2px 4px;
+          padding: 4px 6px !important;
+          color: white !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .fc-event-time {
+          font-weight: 600 !important;
+        }
+
+        .fc-event-title {
+          font-weight: 500 !important;
+          line-height: 1.3 !important;
+        }
+
+        /* Tooltip positioning fix for overflow */
+        .fc-daygrid-event {
+          overflow: visible !important;
+        }
+
+        .fc-event-main-frame {
+          overflow: visible !important;
         }
 
         /* Responsive */
