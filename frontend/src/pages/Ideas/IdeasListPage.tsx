@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MainLayout,
   IdeaCard,
-  Button,
   FAB,
   SkeletonGrid,
   NoIdeasEmptyState,

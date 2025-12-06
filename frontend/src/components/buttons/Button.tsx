@@ -1,9 +1,10 @@
-import { ButtonHTMLAttributes, forwardRef } from 'react';
-import { cn } from '../../utils/cn';
+import type { ButtonHTMLAttributes } from "react";
+import { forwardRef } from "react";
+import { cn } from "../../utils/cn";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "primary" | "secondary" | "ghost" | "outline" | "danger";
+  size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   fullWidth?: boolean;
 }
@@ -12,36 +13,36 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
-      variant = 'primary',
-      size = 'md',
+      variant = "primary",
+      size = "md",
       isLoading = false,
       fullWidth = false,
       disabled,
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+      "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
 
     const variants = {
       primary:
-        'bg-primary-orange text-white hover:bg-[#E55A00] focus-visible:ring-primary-orange',
+        "bg-primary-orange text-white hover:bg-[#E55A00] focus-visible:ring-primary-orange",
       secondary:
-        'border-2 border-primary-blue text-primary-blue hover:bg-primary-blue hover:bg-opacity-10 dark:border-primary-lightBlue dark:text-primary-lightBlue',
+        "border-2 border-primary-blue text-primary-blue hover:bg-primary-blue hover:bg-opacity-10 dark:border-primary-lightBlue dark:text-primary-lightBlue",
       ghost:
-        'text-text-light hover:bg-card-light dark:text-text-dark dark:hover:bg-card-dark',
+        "text-text-light hover:bg-card-light dark:text-text-dark dark:hover:bg-card-dark",
       outline:
-        'border border-gray-300 bg-transparent hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800',
+        "border border-gray-300 bg-transparent hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800",
       danger:
-        'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600',
+        "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600",
     };
 
     const sizes = {
-      sm: 'h-8 px-3 text-sm',
-      md: 'h-10 px-4 py-2',
-      lg: 'h-12 px-6 text-lg',
+      sm: "h-8 px-3 text-sm",
+      md: "h-10 px-4 py-2",
+      lg: "h-12 px-6 text-lg",
     };
 
     return (
@@ -51,8 +52,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           baseStyles,
           variants[variant],
           sizes[size],
-          fullWidth && 'w-full',
-          className
+          fullWidth && "w-full",
+          className,
         )}
         disabled={disabled || isLoading}
         {...props}
@@ -86,9 +87,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </button>
     );
-  }
+  },
 );
 
-Button.displayName = 'Button';
+Button.displayName = "Button";
 
 export default Button;

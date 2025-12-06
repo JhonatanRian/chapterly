@@ -1,5 +1,6 @@
-import { TextareaHTMLAttributes, forwardRef } from 'react';
-import { cn } from '../../utils/cn';
+import type { TextareaHTMLAttributes } from "react";
+import { forwardRef } from "react";
+import { cn } from "../../utils/cn";
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -17,15 +18,15 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       helperText,
       fullWidth = false,
       id,
-      rows = 4,
+      rows = 3,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const textareaId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
-      <div className={cn('flex flex-col gap-1.5', fullWidth && 'w-full')}>
+      <div className={cn("flex flex-col gap-1.5", fullWidth && "w-full")}>
         {label && (
           <label
             htmlFor={textareaId}
@@ -41,18 +42,18 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           rows={rows}
           className={cn(
-            'flex w-full rounded-md border bg-white px-3 py-2 text-sm',
-            'placeholder:text-gray-400',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-            'transition-colors resize-y',
+            "flex w-full rounded-md border bg-white px-3 py-2 text-sm",
+            "placeholder:text-gray-400",
+            "focus:outline-none focus:ring-2 focus:ring-offset-2",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+            "transition-colors resize-y",
             // Border colors
             error
-              ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:border-primary-blue focus:ring-primary-blue dark:border-gray-600',
+              ? "border-red-500 focus:ring-red-500"
+              : "border-gray-300 focus:border-primary-blue focus:ring-primary-blue dark:border-gray-600",
             // Dark mode
-            'dark:bg-gray-800 dark:text-text-dark dark:placeholder:text-gray-500',
-            className
+            "dark:bg-gray-800 dark:text-text-dark dark:placeholder:text-gray-500",
+            className,
           )}
           {...props}
         />
@@ -68,9 +69,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
-Textarea.displayName = 'Textarea';
+Textarea.displayName = "Textarea";
 
 export default Textarea;

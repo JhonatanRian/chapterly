@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { SessionExpiredModal } from "@/components/common/SessionExpiredModal";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { cleanInvalidTokens } from "@/utils/tokenValidation";
+import { useThemeStore } from "@/stores/themeStore";
 import {
   LoginPage,
   RegisterPage,
@@ -33,6 +34,21 @@ function App() {
   // Limpar tokens inválidos na inicialização
   useEffect(() => {
     cleanInvalidTokens();
+  }, []);
+
+  // Garantir que o tema seja aplicado ao montar
+  useEffect(() => {
+    const { theme } = useThemeStore.getState();
+
+    // Forçar aplicação do tema
+    const html = document.documentElement;
+    if (theme === "dark") {
+      html.classList.add("dark");
+      html.classList.remove("light");
+    } else {
+      html.classList.add("light");
+      html.classList.remove("dark");
+    }
   }, []);
 
   return (

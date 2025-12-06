@@ -5,56 +5,76 @@ import { STORAGE_KEYS } from "../utils/constants";
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // State
       theme: "light",
 
       // Actions
       toggleTheme: () => {
-        set((state) => {
-          const newTheme = state.theme === "light" ? "dark" : "light";
+        const currentTheme = get().theme;
+        const newTheme = currentTheme === "light" ? "dark" : "light";
 
-          // Aplicar tema no documento
-          if (newTheme === "dark") {
-            document.documentElement.classList.add("dark");
-          } else {
-            document.documentElement.classList.remove("dark");
-          }
+        // Atualizar estado
+        set({ theme: newTheme });
 
-          return { theme: newTheme };
-        });
+        // Aplicar tema no documento imediatamente
+        applyTheme(newTheme);
+
+        console.log(`🌓 Tema alterado: ${currentTheme} → ${newTheme}`);
       },
 
       setTheme: (theme: "light" | "dark") => {
         set({ theme });
-
-        // Aplicar tema no documento
-        if (theme === "dark") {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-        }
+        applyTheme(theme);
+        console.log(`🌓 Tema definido: ${theme}`);
       },
     }),
     {
       name: STORAGE_KEYS.THEME,
+      // Callback quando estado é restaurado do localStorage
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          console.log("🌓 Tema restaurado do localStorage:", state.theme);
+          applyTheme(state.theme);
+        }
+      },
     },
   ),
 );
 
-// Função para inicializar o tema
-export function initTheme() {
-  const theme = useThemeStore.getState().theme;
+/**
+ * Aplica o tema no documento HTML
+ */
+function applyTheme(theme: "light" | "dark") {
+  const html = document.documentElement;
 
-  // Aplicar tema salvo
   if (theme === "dark") {
-    document.documentElement.classList.add("dark");
+    html.classList.add("dark");
+    html.classList.remove("light");
   } else {
-    document.documentElement.classList.remove("dark");
+    html.classList.add("light");
+    html.classList.remove("dark");
   }
+
+  // Log para debug
+  console.log("🌓 Classes do HTML:", html.classList.toString());
 }
 
-// Detectar preferência do sistema (opcional)
+/**
+ * Função para inicializar o tema
+ * Chamada automaticamente ao importar o módulo
+ */
+export function initTheme() {
+  const state = useThemeStore.getState();
+  const theme = state.theme;
+
+  console.log("🌓 Inicializando tema:", theme);
+  applyTheme(theme);
+}
+
+/**
+ * Detectar preferência do sistema (opcional)
+ */
 export function detectSystemTheme(): "light" | "dark" {
   if (
     window.matchMedia &&
@@ -65,7 +85,42 @@ export function detectSystemTheme(): "light" | "dark" {
   return "light";
 }
 
+/**
+ * Aplicar preferência do sistema se não houver tema salvo
+ */
+export function initThemeWithSystemPreference() {
+  const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+
+  // Se não há tema salvo, usar preferência do sistema
+  if (!savedTheme) {
+    const systemTheme = detectSystemTheme();
+    console.log("🌓 Usando tema do sistema:", systemTheme);
+    useThemeStore.getState().setTheme(systemTheme);
+  } else {
+    // Se há tema salvo, aplicá-lo
+    initTheme();
+  }
+}
+
 // Auto-inicializar tema ao importar
 if (typeof window !== "undefined") {
-  initTheme();
+  // Aguardar DOM estar pronto
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+    });
+  } else {
+    initTheme();
+  }
+
+  // Detectar mudança na preferência do sistema (opcional)
+  if (window.matchMedia) {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", (e) => {
+      const newTheme = e.matches ? "dark" : "light";
+      console.log("🌓 Preferência do sistema mudou:", newTheme);
+      // Opcional: atualizar tema automaticamente
+      // useThemeStore.getState().setTheme(newTheme);
+    });
+  }
 }

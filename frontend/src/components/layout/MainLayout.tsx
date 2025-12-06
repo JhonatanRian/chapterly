@@ -1,7 +1,7 @@
-import { cn } from '@/utils/cn';
-import { Sidebar } from './Sidebar';
-import { Header } from './Header';
-import { ReactNode } from 'react';
+import { cn } from "@/utils/cn";
+import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
+import type { ReactNode } from "react";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -20,9 +20,7 @@ export function MainLayout({ children, className }: MainLayoutProps) {
         <Header />
 
         {/* Page content */}
-        <main className={cn('p-6', className)}>
-          {children}
-        </main>
+        <main className={cn("p-6", className)}>{children}</main>
       </div>
     </div>
   );
