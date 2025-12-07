@@ -170,12 +170,12 @@ export function Sidebar({ className }: SidebarProps) {
             to={item.path}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                "flex items-center gap-3 rounded-lg transition-colors",
                 "text-gray-700 dark:text-gray-300",
                 "hover:bg-gray-100 dark:hover:bg-gray-700",
                 isActive &&
                   "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium",
-                isCollapsed && "justify-center",
+                isCollapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5",
               )
             }
             title={isCollapsed ? item.label : undefined}
