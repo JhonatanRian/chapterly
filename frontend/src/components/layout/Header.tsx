@@ -94,14 +94,21 @@ export function Header({ className }: HeaderProps) {
       )}
     >
       <div className="h-full px-6 flex items-center justify-between gap-4">
-        {/* Left - Greeting */}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
-            {getGreeting()}, {displayName}!
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Bem-vindo ao Chapterly
-          </p>
+        {/* Left - Logo & Greeting */}
+        <div className="flex-1 min-w-0 flex items-center gap-4">
+          <img
+            src="/logo.png"
+            alt="Chapterly"
+            className="h-8 hidden md:block"
+          />
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
+              {getGreeting()}, {displayName}!
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Bem-vindo ao Chapterly
+            </p>
+          </div>
         </div>
 
         {/* Right - Actions */}
@@ -286,7 +293,7 @@ export function Header({ className }: HeaderProps) {
                     </svg>
                     Meu Perfil
                   </button>
-                  <button
+                  {/*<button
                     onClick={() => navigate("/settings")}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                   >
@@ -310,7 +317,7 @@ export function Header({ className }: HeaderProps) {
                       />
                     </svg>
                     Configurações
-                  </button>
+                  </button>*/}
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 py-2">
                   <button

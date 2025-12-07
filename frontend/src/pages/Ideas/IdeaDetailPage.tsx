@@ -14,6 +14,7 @@ import {
   DateTimePicker,
   ConfirmModal,
   HypeDisplay,
+  MarkdownRenderer,
 } from "@/components";
 import { AnimatedPage, AnimatedButton } from "@/components/animations";
 import { CommentsSection } from "@/components/common/CommentsSection";
@@ -154,6 +155,7 @@ export function IdeaDetailPage() {
   });
 
   const handleDelete = () => {
+    setShowDeleteModal(false);
     deleteMutation.mutate();
   };
 
@@ -290,10 +292,7 @@ export function IdeaDetailPage() {
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Detalhes
               </h2>
-              <div
-                className="prose dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: idea.conteudo }}
-              />
+              <MarkdownRenderer content={idea.conteudo || ""} />
             </div>
 
             {/* Comments Section */}

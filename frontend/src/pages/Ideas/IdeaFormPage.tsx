@@ -11,7 +11,7 @@ import {
   Input,
   Textarea,
   ImageUpload,
-  RichTextEditor,
+  MarkdownEditor,
   TagSelector,
   Loading,
   ConfirmModal,
@@ -276,22 +276,26 @@ export function IdeaFormPage() {
               required
             />
 
-            {/* Content (Rich Text) */}
-            <Controller
-              name="conteudo"
-              control={control}
-              render={({ field }) => (
-                <RichTextEditor
-                  label="Conteúdo Completo"
-                  placeholder="Descreva sua ideia em detalhes..."
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={errors.conteudo?.message}
-                  disabled={isMutating}
-                  height={500}
-                />
-              )}
-            />
+            {/* Content (Markdown) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Conteúdo Completo{" "}
+                <span className="text-xs text-gray-500">(Markdown)</span>
+              </label>
+              <Controller
+                name="conteudo"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownEditor
+                    content={field.value}
+                    onChange={field.onChange}
+                    placeholder="Escreva o conteúdo em Markdown... Suporta imagens, código com syntax highlighting e diagramas Mermaid!"
+                    error={errors.conteudo?.message}
+                    disabled={isMutating}
+                  />
+                )}
+              />
+            </div>
 
             {/* Image Upload */}
             <Controller

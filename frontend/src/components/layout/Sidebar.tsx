@@ -127,9 +127,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Ch</span>
-            </div>
+            <img src="/icon.png" alt="Chapterly" className="w-8 h-8" />
             <span className="font-bold text-gray-900 dark:text-gray-100">
               Chapterly
             </span>

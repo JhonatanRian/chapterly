@@ -1,35 +1,38 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { useAuthStore } from '@/stores/authStore';
-import { Button, Input, Loading } from '@/components';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { useAuthStore } from "@/stores/authStore";
+import { Button, Input, Loading } from "@/components";
 
-const registerSchema = z.object({
-  username: z.string()
-    .min(3, 'Usuário deve ter pelo menos 3 caracteres')
-    .max(150, 'Usuário muito longo')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Apenas letras, números e underscore'),
-  email: z.string()
-    .email('Email inválido')
-    .min(1, 'Email é obrigatório'),
-  first_name: z.string()
-    .min(2, 'Nome deve ter pelo menos 2 caracteres')
-    .max(150, 'Nome muito longo'),
-  last_name: z.string()
-    .min(2, 'Sobrenome deve ter pelo menos 2 caracteres')
-    .max(150, 'Sobrenome muito longo'),
-  password: z.string()
-    .min(6, 'Senha deve ter pelo menos 6 caracteres')
-    .max(128, 'Senha muito longa'),
-  password_confirm: z.string()
-    .min(1, 'Confirmação de senha é obrigatória'),
-}).refine((data) => data.password === data.password_confirm, {
-  message: 'As senhas não coincidem',
-  path: ['password_confirm'],
-});
+const registerSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Usuário deve ter pelo menos 3 caracteres")
+      .max(150, "Usuário muito longo")
+      .regex(/^[a-zA-Z0-9_]+$/, "Apenas letras, números e underscore"),
+    email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
+    first_name: z
+      .string()
+      .min(2, "Nome deve ter pelo menos 2 caracteres")
+      .max(150, "Nome muito longo"),
+    last_name: z
+      .string()
+      .min(2, "Sobrenome deve ter pelo menos 2 caracteres")
+      .max(150, "Sobrenome muito longo"),
+    password: z
+      .string()
+      .min(6, "Senha deve ter pelo menos 6 caracteres")
+      .max(128, "Senha muito longa"),
+    password_confirm: z.string().min(1, "Confirmação de senha é obrigatória"),
+  })
+  .refine((data) => data.password === data.password_confirm, {
+    message: "As senhas não coincidem",
+    path: ["password_confirm"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -50,8 +53,8 @@ export function RegisterPage() {
     setIsLoading(true);
     try {
       await register(data);
-      toast.success('Conta criada com sucesso! Você já está logado.');
-      navigate('/dashboard');
+      toast.success("Conta criada com sucesso! Você já está logado.");
+      navigate("/dashboard");
     } catch (error: any) {
       const errorData = error.response?.data;
 
@@ -64,10 +67,12 @@ export function RegisterPage() {
         } else if (errorData.password) {
           toast.error(`Senha: ${errorData.password[0]}`);
         } else {
-          toast.error('Erro ao criar conta. Verifique os dados e tente novamente.');
+          toast.error(
+            "Erro ao criar conta. Verifique os dados e tente novamente.",
+          );
         }
       } else {
-        toast.error('Erro ao criar conta. Tente novamente mais tarde.');
+        toast.error("Erro ao criar conta. Tente novamente mais tarde.");
       }
     } finally {
       setIsLoading(false);
@@ -79,8 +84,8 @@ export function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
-            <span className="text-white font-bold text-2xl">Ch</span>
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="/icon.png" alt="Chapterly" className="w-20 h-20" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Criar conta
@@ -105,7 +110,7 @@ export function RegisterPage() {
                 id="username"
                 type="text"
                 placeholder="seu_usuario"
-                {...registerField('username')}
+                {...registerField("username")}
                 error={errors.username?.message}
                 disabled={isLoading}
               />
@@ -123,7 +128,7 @@ export function RegisterPage() {
                 id="email"
                 type="email"
                 placeholder="seu@email.com"
-                {...registerField('email')}
+                {...registerField("email")}
                 error={errors.email?.message}
                 disabled={isLoading}
               />
@@ -142,7 +147,7 @@ export function RegisterPage() {
                   id="first_name"
                   type="text"
                   placeholder="João"
-                  {...registerField('first_name')}
+                  {...registerField("first_name")}
                   error={errors.first_name?.message}
                   disabled={isLoading}
                 />
@@ -158,7 +163,7 @@ export function RegisterPage() {
                   id="last_name"
                   type="text"
                   placeholder="Silva"
-                  {...registerField('last_name')}
+                  {...registerField("last_name")}
                   error={errors.last_name?.message}
                   disabled={isLoading}
                 />
@@ -177,7 +182,7 @@ export function RegisterPage() {
                 id="password"
                 type="password"
                 placeholder="Mínimo 6 caracteres"
-                {...registerField('password')}
+                {...registerField("password")}
                 error={errors.password?.message}
                 disabled={isLoading}
               />
@@ -195,25 +200,21 @@ export function RegisterPage() {
                 id="password_confirm"
                 type="password"
                 placeholder="Digite a senha novamente"
-                {...registerField('password_confirm')}
+                {...registerField("password_confirm")}
                 error={errors.password_confirm?.message}
                 disabled={isLoading}
               />
             </div>
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full mt-6"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full mt-6" disabled={isLoading}>
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
                   <Loading />
                   <span>Criando conta...</span>
                 </div>
               ) : (
-                'Criar conta'
+                "Criar conta"
               )}
             </Button>
           </form>
@@ -233,7 +234,7 @@ export function RegisterPage() {
           {/* Login Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Já tem uma conta?{' '}
+              Já tem uma conta?{" "}
               <Link
                 to="/login"
                 className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"

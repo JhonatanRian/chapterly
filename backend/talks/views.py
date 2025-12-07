@@ -1,8 +1,10 @@
+from django.core.files.storage import default_storage
 from django.db.models import Count, Q
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, parser_classes
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -18,6 +20,55 @@ from .serializers import (
     RescheduleSerializer,
     TagSerializer,
 )
+
+
+@extend_schema(tags=["upload"])
+@api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser])
+def upload_image(request):
+    """
+    Upload de imagem para uso no editor de rich text.
+
+    Aceita uma imagem e retorna a URL pública.
+    Usado pelo editor Tiptap para inserir imagens no conteúdo.
+    """
+    if "image" not in request.FILES:
+        return Response(
+            {"error": "Nenhuma imagem foi enviada"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    image = request.FILES["image"]
+
+    # Validar tipo de arquivo
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
+    if image.content_type not in allowed_types:
+        return Response(
+            {"error": "Tipo de arquivo não permitido. Use JPEG, PNG, GIF ou WebP"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Validar tamanho (máx 5MB)
+    max_size = 5 * 1024 * 1024  # 5MB
+    if image.size > max_size:
+        return Response(
+            {"error": "Imagem muito grande. Tamanho máximo: 5MB"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Salvar arquivo
+    file_path = f"ideas/content/{image.name}"
+    saved_path = default_storage.save(file_path, image)
+    file_url = request.build_absolute_uri(default_storage.url(saved_path))
+
+    return Response(
+        {
+            "url": file_url,
+            "name": image.name,
+            "size": image.size,
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @extend_schema(tags=["tags"])
@@ -71,7 +122,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
     destroy: Deletar ideia
     """
 
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsPresenterOrOwnerOrAdmin]
     filterset_class = IdeaFilter
     search_fields = ["titulo", "descricao", "conteudo"]
     ordering_fields = ["created_at", "data_agendada", "total_votes"]

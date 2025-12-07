@@ -34,6 +34,9 @@ export {
   HypeDisplay,
 } from "./common";
 
+// Branding
+export { Logo } from "./branding";
+
 // Buttons
 export { Button, ThemeToggle, FAB } from "./buttons";
 export type { ButtonProps } from "./buttons";
@@ -44,6 +47,8 @@ export {
   Textarea,
   ImageUpload,
   RichTextEditor,
+  MarkdownEditor,
+  MarkdownRenderer,
   TagSelector,
   DateTimePicker,
 } from "./forms";

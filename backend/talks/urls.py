@@ -1,7 +1,13 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import CommentViewSet, IdeaViewSet, NotificationViewSet, TagViewSet
+from .views import (
+    CommentViewSet,
+    IdeaViewSet,
+    NotificationViewSet,
+    TagViewSet,
+    upload_image,
+)
 
 # Criar router
 router = DefaultRouter()
@@ -14,4 +20,5 @@ router.register(r"notifications", NotificationViewSet, basename="notification")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("upload/image/", upload_image, name="upload-image"),
 ]

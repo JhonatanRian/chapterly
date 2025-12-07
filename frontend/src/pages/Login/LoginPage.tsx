@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { useAuthStore } from '@/stores/authStore';
-import { Button, Input, Loading } from '@/components';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { useAuthStore } from "@/stores/authStore";
+import { Button, Input, Loading } from "@/components";
 
 const loginSchema = z.object({
-  username: z.string().min(3, 'Usuário deve ter pelo menos 3 caracteres'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  username: z.string().min(3, "Usuário deve ter pelo menos 3 caracteres"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -31,10 +31,12 @@ export function LoginPage() {
     setIsLoading(true);
     try {
       await login(data);
-      toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
+      toast.success("Login realizado com sucesso!");
+      navigate("/dashboard");
     } catch (error: any) {
-      const message = error.response?.data?.detail || 'Erro ao fazer login. Verifique suas credenciais.';
+      const message =
+        error.response?.data?.detail ||
+        "Erro ao fazer login. Verifique suas credenciais.";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -46,8 +48,8 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
-            <span className="text-white font-bold text-2xl">Ch</span>
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="/icon.png" alt="Chapterly" className="w-20 h-20" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Bem-vindo ao Chapterly
@@ -72,7 +74,7 @@ export function LoginPage() {
                 id="username"
                 type="text"
                 placeholder="Digite seu usuário"
-                {...register('username')}
+                {...register("username")}
                 error={errors.username?.message}
                 disabled={isLoading}
               />
@@ -90,7 +92,7 @@ export function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="Digite sua senha"
-                {...register('password')}
+                {...register("password")}
                 error={errors.password?.message}
                 disabled={isLoading}
               />
@@ -107,18 +109,14 @@ export function LoginPage() {
             </div>
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
                   <Loading />
                   <span>Entrando...</span>
                 </div>
               ) : (
-                'Entrar'
+                "Entrar"
               )}
             </Button>
           </form>
@@ -138,7 +136,7 @@ export function LoginPage() {
           {/* Register Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Não tem uma conta?{' '}
+              Não tem uma conta?{" "}
               <Link
                 to="/register"
                 className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"

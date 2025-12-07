@@ -1,11 +1,498 @@
+/* Highlight.js theme for code syntax highlighting */
+@import "highlight.js/styles/github-dark.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 body {
-  @apply bg-background-light text-text-light dark:bg-background-dark dark:text-text-dark transition-colors duration-300;
+    @apply bg-background-light text-text-light dark:bg-background-dark dark:text-text-dark transition-colors duration-300;
+}
+
+/* Rich text content overflow prevention */
+.prose {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.prose * {
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+.prose img,
+.prose video,
+.prose iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+.prose table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: normal;
+}
+
+.prose pre {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.prose code {
+    word-break: break-all;
+}
+
+.prose p,
+.prose li,
+.prose td,
+.prose th {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* Prevent long links from overflowing */
+.prose a {
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+/* Ensure headings don't overflow */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* Tiptap Editor Styles */
+.ProseMirror {
+    min-height: 400px;
+    outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+}
+
+.ProseMirror pre {
+    background: #1e1e1e;
+    border-radius: 0.5rem;
+    color: #e4e4e4;
+    font-family: "JetBrainsMono", "Courier New", Courier, monospace;
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+}
+
+.ProseMirror pre code {
+    background: none;
+    color: inherit;
+    font-size: 0.8125rem;
+    padding: 0;
+    line-height: 1.5;
+}
+
+.ProseMirror code {
+    background-color: rgba(97, 97, 97, 0.1);
+    border-radius: 0.25rem;
+    color: #e4e4e4;
+    font-size: 0.875rem;
+    padding: 0.125rem 0.25rem;
+}
+
+.dark .ProseMirror code {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ProseMirror mark {
+    background-color: #fef08a;
+    border-radius: 0.125rem;
+    padding: 0.125rem 0.25rem;
+    color: inherit;
+}
+
+.dark .ProseMirror mark {
+    background-color: #854d0e;
+    color: #fef08a;
+}
+
+.prose mark {
+    background-color: #fef08a;
+    border-radius: 0.125rem;
+    padding: 0.125rem 0.25rem;
+    color: inherit;
+}
+
+.dark .prose mark {
+    background-color: #854d0e;
+    color: #fef08a;
+}
+
+.ProseMirror blockquote {
+    border-left: 3px solid #6366f1;
+    padding-left: 1rem;
+    margin-left: 0;
+    font-style: italic;
+    color: #64748b;
+}
+
+.dark .ProseMirror blockquote {
+    color: #94a3b8;
+}
+
+.ProseMirror hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 2rem 0;
+}
+
+.dark .ProseMirror hr {
+    border-top-color: #374151;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.ProseMirror ul {
+    list-style-type: disc;
+}
+
+.ProseMirror ol {
+    list-style-type: decimal;
+}
+
+.ProseMirror li {
+    margin: 0.25rem 0;
+}
+
+.ProseMirror table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    margin: 1rem 0;
+    overflow: hidden;
+}
+
+.ProseMirror td,
+.ProseMirror th {
+    border: 1px solid #d1d5db;
+    padding: 0.5rem;
+    vertical-align: top;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.dark .ProseMirror td,
+.dark .ProseMirror th {
+    border-color: #4b5563;
+}
+
+.ProseMirror th {
+    font-weight: 600;
+    background-color: #f3f4f6;
+}
+
+.dark .ProseMirror th {
+    background-color: #374151;
+}
+
+.ProseMirror .selectedCell {
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+.ProseMirror img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
+
+/* Syntax highlighting for code blocks in rendered content */
+.prose pre code.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.75rem;
+    background: #1e1e1e;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+.prose pre {
+    padding: 0;
+    margin: 0.75rem 0;
+}
+
+.prose code.hljs {
+    background: none;
+}
+
+/* Figure with caption styles (for rendered content) */
+.prose figure.image-figure,
+.image-figure {
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+.prose figure.image-figure[data-align="left"],
+.image-figure[data-align="left"] {
+    text-align: left;
+}
+
+.prose figure.image-figure[data-align="right"],
+.image-figure[data-align="right"] {
+    text-align: right;
+}
+
+.prose .image-wrapper-align {
+    margin: 1rem 0;
+}
+
+.prose .image-wrapper-align[data-align="left"] {
+    text-align: left;
+}
+
+.prose .image-wrapper-align[data-align="center"] {
+    text-align: center;
+}
+
+.prose .image-wrapper-align[data-align="right"] {
+    text-align: right;
+}
+
+.prose figure.image-figure img,
+.image-figure img {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 0 auto;
+}
+
+.prose figure.image-figure figcaption,
+.image-figure figcaption {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    font-style: italic;
+    color: #64748b;
+    text-align: center;
+}
+
+.dark .prose figure.image-figure figcaption,
+.dark .image-figure figcaption {
+    color: #94a3b8;
+}
+
+/* Resizable Image Styles */
+.image-container {
+    position: relative;
+    display: block;
+    max-width: 100%;
+    margin: 1rem 0;
+}
+
+.image-container[data-align="left"] {
+    text-align: left;
+}
+
+.image-container[data-align="center"] {
+    text-align: center;
+}
+
+.image-container[data-align="right"] {
+    text-align: right;
+}
+
+.image-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.image-wrapper img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    cursor: default;
+}
+
+.image-container:hover .resize-handle {
+    opacity: 1;
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: #6366f1;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: ew-resize;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.resize-handle:hover {
+    background: #4f46e5;
+    transform: scale(1.2);
+}
+
+.image-caption-input {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    font-style: italic;
+    color: #64748b;
+    background: rgba(249, 250, 251, 0.5);
+    border: 1px dashed #d1d5db;
+    border-radius: 0.25rem;
+    outline: none;
+    transition: all 0.2s;
+    min-height: 2rem;
+    cursor: text;
+}
+
+.image-caption-input:hover {
+    background: rgba(249, 250, 251, 0.8);
+    border-color: #a78bfa;
+}
+
+.dark .image-caption-input {
+    color: #94a3b8;
+    background: rgba(31, 41, 55, 0.5);
+    border-color: #4b5563;
+}
+
+.dark .image-caption-input:hover {
+    background: rgba(31, 41, 55, 0.8);
+    border-color: #a78bfa;
+}
+
+.image-caption-input:focus {
+    background: white;
+    border: 2px solid #6366f1;
+    border-style: solid;
+    color: #1e293b;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.dark .image-caption-input:focus {
+    background: #1f2937;
+    border: 2px solid #6366f1;
+    border-style: solid;
+    color: #e2e8f0;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Placeholder for contenteditable div */
+.image-caption-input:empty::before {
+    content: attr(data-placeholder);
+    color: #94a3b8;
+    opacity: 0.6;
+}
+
+.dark .image-caption-input:empty::before {
+    color: #64748b;
+}
+
+.image-caption-input:focus:empty::before {
+    opacity: 0.4;
+}
+
+/* Image alignment controls */
+.image-alignment-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.image-container:hover .image-alignment-controls {
+    opacity: 1;
+}
+
+.image-alignment-controls .align-btn {
+    padding: 0.25rem 0.5rem;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    color: #6b7280;
+}
+
+.dark .image-alignment-controls .align-btn {
+    background: #374151;
+    border-color: #4b5563;
+    color: #9ca3af;
+}
+
+.image-alignment-controls .align-btn:hover {
+    background: #f3f4f6;
+    border-color: #6366f1;
+    color: #6366f1;
+}
+
+.dark .image-alignment-controls .align-btn:hover {
+    background: #4b5563;
+    border-color: #6366f1;
+    color: #a78bfa;
+}
+
+.image-alignment-controls .align-btn.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: white;
+}
+
+.dark .image-alignment-controls .align-btn.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: white;
+}
+
+/* Rendered caption styles */
+.prose img[data-caption]::after,
+.ProseMirror img[data-caption]::after {
+    content: attr(data-caption);
+    display: block;
+    text-align: center;
+    font-size: 0.875rem;
+    font-style: italic;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+
+.dark .prose img[data-caption]::after,
+.dark .ProseMirror img[data-caption]::after {
+    color: #94a3b8;
 }

@@ -9,7 +9,7 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "@/providers/QueryProvider";
-import { Toaster } from "@/components";
+import { Toaster, Logo } from "@/components";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { SessionExpiredModal } from "@/components/common/SessionExpiredModal";
 import { useSessionManager } from "@/hooks/useSessionManager";
@@ -156,8 +156,11 @@ function App() {
           <Route
             path="*"
             element={
-              <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+              <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
                 <div className="text-center">
+                  <div className="mb-8">
+                    <Logo variant="icon" size="xl" className="mx-auto mb-4" />
+                  </div>
                   <h1 className="text-6xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                     404
                   </h1>
@@ -166,7 +169,7 @@ function App() {
                   </p>
                   <a
                     href="/dashboard"
-                    className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-lg"
                   >
                     Voltar ao Dashboard
                   </a>
