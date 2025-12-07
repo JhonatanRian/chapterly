@@ -103,8 +103,15 @@ class AuthService {
   /**
    * Atualiza o perfil do usuário
    */
-  async updateProfile(data: Partial<UserProfile>): Promise<UserProfile> {
-    const response = await api.patch<UserProfile>(ENDPOINTS.PROFILE, data);
+  async updateProfile(
+    data: FormData | Partial<UserProfile>,
+  ): Promise<UserProfile> {
+    const response = await api.patch<UserProfile>(ENDPOINTS.PROFILE, data, {
+      headers:
+        data instanceof FormData
+          ? { "Content-Type": "multipart/form-data" }
+          : undefined,
+    });
 
     // Atualizar usuário no localStorage
     this.saveUser(response.data);
@@ -126,7 +133,6 @@ class AuthService {
   async changePassword(data: {
     old_password: string;
     new_password: string;
-    new_password_confirm: string;
   }): Promise<{ message: string }> {
     const response = await api.post<{ message: string }>(
       ENDPOINTS.CHANGE_PASSWORD,

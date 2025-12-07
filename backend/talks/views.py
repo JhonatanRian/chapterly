@@ -305,20 +305,34 @@ class IdeaViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         summary="Timeline de apresentações",
-        description="Retorna todas as apresentações agendadas, ordenadas por data",
+        description="Retorna todas as apresentações agendadas, ordenadas por data. Suporta filtro por status (pendente, agendado, concluido)",
         responses={200: IdeaListSerializer(many=True)},
     )
     @action(detail=False, methods=["get"])
     def timeline(self, request):
         """
-        GET /ideas/timeline/
+        GET /ideas/timeline/?status=agendado
         Retorna todas as apresentações agendadas, ordenadas por data
+
+        Query params:
+        - status: filtrar por status (pendente, agendado, concluido)
         """
         timeline_ideas = (
             Idea.objects.with_vote_stats()
             .filter(data_agendada__isnull=False)
             .order_by("data_agendada")
         )
+
+        # Filtro server-side por status
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            now = timezone.now()
+            if status_filter == "agendado":
+                # data_agendada > now
+                timeline_ideas = timeline_ideas.filter(data_agendada__gt=now)
+            elif status_filter == "concluido":
+                # data_agendada <= now
+                timeline_ideas = timeline_ideas.filter(data_agendada__lte=now)
 
         # Paginar resultados
         page = self.paginate_queryset(timeline_ideas)
@@ -389,10 +403,11 @@ class IdeaViewSet(viewsets.ModelViewSet):
         GET /ideas/stats/
         Retorna estatísticas gerais
         """
+        today = timezone.now()
         total_ideias = Idea.objects.count()
-        pendentes = Idea.objects.filter(status="pendente").count()
-        agendadas = Idea.objects.filter(status="agendado").count()
-        concluidas = Idea.objects.filter(status="concluido").count()
+        pendentes = Idea.objects.filter(data_agendada__isnull=True).count()
+        agendadas = Idea.objects.filter(data_agendada__gt=today).count()
+        concluidas = Idea.objects.filter(data_agendada__lte=today).count()
         precisa_apresentador = Idea.objects.filter(apresentador__isnull=True).count()
         total_votos = Vote.objects.count()
 

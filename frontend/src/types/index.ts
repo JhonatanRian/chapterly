@@ -5,6 +5,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  avatar?: string | null;
   date_joined?: string;
   ideias_criadas_count?: number;
   apresentacoes_count?: number;

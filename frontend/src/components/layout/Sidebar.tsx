@@ -198,7 +198,7 @@ export function Sidebar({ className }: SidebarProps) {
       </nav>
 
       {/* Footer - User info */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
+      {/*<div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
         {!isCollapsed ? (
           <div className="flex items-center gap-3 text-sm">
             <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -218,7 +218,7 @@ export function Sidebar({ className }: SidebarProps) {
             U
           </div>
         )}
-      </div>
+      </div>*/}
     </aside>
   );
 }

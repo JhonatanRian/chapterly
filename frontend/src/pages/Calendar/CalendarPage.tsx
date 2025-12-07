@@ -11,6 +11,7 @@ import {
   CalendarView,
   CalendarLegend,
   Modal,
+  UserBadge,
 } from "@/components";
 import { AnimatedPage } from "@/components/animations";
 import { ideasService } from "@/services/ideas.service";
@@ -301,22 +302,18 @@ export function CalendarPage() {
               {/* Metadata */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Autor
                   </h4>
-                  <p className="text-gray-900 dark:text-gray-100">
-                    {selectedIdea.autor.username}
-                  </p>
+                  <UserBadge user={selectedIdea.autor} />
                 </div>
 
                 {selectedIdea.apresentador && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Apresentador
                     </h4>
-                    <p className="text-gray-900 dark:text-gray-100">
-                      {selectedIdea.apresentador.username}
-                    </p>
+                    <UserBadge user={selectedIdea.apresentador} />
                   </div>
                 )}
 

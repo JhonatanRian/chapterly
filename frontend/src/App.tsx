@@ -25,6 +25,7 @@ import {
   ProfilePage,
   CalendarPage,
   TimelinePage,
+  EditProfilePage,
 } from "@/pages";
 
 /**
@@ -136,6 +137,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/edit"
+            element={
+              <ProtectedRoute>
+                <EditProfilePage />
               </ProtectedRoute>
             }
           />

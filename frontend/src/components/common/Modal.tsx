@@ -127,6 +127,7 @@ export function Modal({
           role="dialog"
           aria-modal="true"
           aria-labelledby={title ? "modal-title" : undefined}
+          className="flex flex-col max-h-[90vh]"
         >
           {/* Header */}
           {(title || showCloseButton) && (
@@ -170,7 +171,9 @@ export function Modal({
           )}
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+          <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+            {children}
+          </div>
 
           {/* Footer */}
           {footer && (

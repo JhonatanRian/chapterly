@@ -77,15 +77,14 @@ export function IdeaCard({
           {/* Vote button (Hype) */}
           {onVote && (
             <button
-              ref={voteButtonRef}
               onClick={handleVote}
               disabled={isVoting}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium",
-                "transition-all duration-200 shadow-sm hover:shadow-md",
+                "transition-colors duration-200",
                 idea.has_voted
-                  ? "bg-orange-500 text-white dark:bg-orange-600 shadow-orange-500/30"
-                  : "bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 hover:shadow-orange-500/30",
+                  ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-600",
                 isVoting && "opacity-50 cursor-not-allowed",
               )}
               aria-label={idea.has_voted ? "Remover hype" : "Hypar"}

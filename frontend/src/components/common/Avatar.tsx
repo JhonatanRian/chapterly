@@ -1,35 +1,41 @@
-import type { User } from '@/types';
-import { cn } from '@/utils/cn';
-import { useMemo } from 'react';
+import type { User } from "@/types";
+import { cn } from "@/utils/cn";
+import { useMemo } from "react";
 
 interface AvatarProps {
   user?: User | null;
   src?: string | null;
   alt?: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
 }
 
 const sizeClasses = {
-  xs: 'w-6 h-6 text-xs',
-  sm: 'w-8 h-8 text-sm',
-  md: 'w-10 h-10 text-base',
-  lg: 'w-12 h-12 text-lg',
-  xl: 'w-16 h-16 text-xl',
+  xs: "w-6 h-6 text-xs",
+  sm: "w-8 h-8 text-sm",
+  md: "w-10 h-10 text-base",
+  lg: "w-12 h-12 text-lg",
+  xl: "w-16 h-16 text-xl",
 };
 
-export function Avatar({ user, src, alt, size = 'md', className }: AvatarProps) {
+export function Avatar({
+  user,
+  src,
+  alt,
+  size = "md",
+  className,
+}: AvatarProps) {
   const initials = useMemo(() => {
     if (user) {
-      const first = user.first_name?.[0] || '';
-      const last = user.last_name?.[0] || '';
+      const first = user.first_name?.[0] || "";
+      const last = user.last_name?.[0] || "";
       if (first && last) return `${first}${last}`.toUpperCase();
-      return user.username?.[0]?.toUpperCase() || '?';
+      return user.username?.[0]?.toUpperCase() || "?";
     }
     if (alt) {
-      return alt[0]?.toUpperCase() || '?';
+      return alt[0]?.toUpperCase() || "?";
     }
-    return '?';
+    return "?";
   }, [user, alt]);
 
   const displayName = useMemo(() => {
@@ -39,27 +45,29 @@ export function Avatar({ user, src, alt, size = 'md', className }: AvatarProps) 
       }
       return user.username;
     }
-    return alt || 'User';
+    return alt || "User";
   }, [user, alt]);
+
+  const avatarSrc = src || user?.avatar;
 
   return (
     <div
       className={cn(
-        'relative inline-flex items-center justify-center rounded-full overflow-hidden',
-        'bg-gradient-to-br from-indigo-500 to-purple-600',
-        'text-white font-semibold',
+        "relative inline-flex items-center justify-center rounded-full overflow-hidden",
+        "bg-gradient-to-br from-indigo-500 to-purple-600",
+        "text-white font-semibold",
         sizeClasses[size],
-        className
+        className,
       )}
       title={displayName}
     >
-      {src ? (
+      {avatarSrc ? (
         <img
-          src={src}
+          src={avatarSrc}
           alt={displayName}
           className="w-full h-full object-cover"
           onError={(e) => {
-            e.currentTarget.style.display = 'none';
+            e.currentTarget.style.display = "none";
           }}
         />
       ) : (

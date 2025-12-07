@@ -115,6 +115,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "email",
             "first_name",
             "last_name",
+            "avatar",
             "date_joined",
             "ideias_criadas_count",
             "apresentacoes_count",

@@ -200,6 +200,28 @@ class IdeasService {
   }
 
   /**
+   * Obtém a timeline com paginação (para infinite scroll)
+   */
+  async getTimelinePaginated(
+    page: number = 1,
+    pageSize: number = 12,
+    status?: "pendente" | "agendado" | "concluido",
+  ): Promise<PaginatedResponse<IdeaListItem>> {
+    const params = new URLSearchParams();
+    params.append("page", String(page));
+    params.append("page_size", String(pageSize));
+
+    if (status) {
+      params.append("status", status);
+    }
+
+    const response = await api.get<PaginatedResponse<IdeaListItem>>(
+      `${ENDPOINTS.IDEAS_TIMELINE}?${params.toString()}`,
+    );
+    return response.data;
+  }
+
+  /**
    * Obtém estatísticas gerais das ideias
    */
   async getStats(): Promise<GeneralStats> {
