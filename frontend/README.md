@@ -1,73 +1,315 @@
-# React + TypeScript + Vite
+# Chapterly Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Aplicação React + TypeScript para gerenciamento de apresentações técnicas
 
-Currently, two official plugins are available:
+## 🚀 Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - Biblioteca UI
+- **TypeScript** - Type safety
+- **Vite** - Build tool moderno e rápido
+- **TanStack Query (React Query)** - Gerenciamento de estado servidor
+- **Axios** - Cliente HTTP com interceptors JWT
+- **React Router** - Roteamento
+- **TipTap** - Editor de texto rico
+- **FullCalendar** - Calendário interativo
+- **Tailwind CSS** - Estilização utility-first
+- **Framer Motion** - Animações
+- **Lucide React** - Ícones
 
-## React Compiler
+## 🔧 Setup Rápido
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. Instalar dependências
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd frontend
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Configurar ambiente (opcional)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Por padrão, o frontend se conecta ao backend em `http://localhost:8000`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Se precisar alterar, edite `frontend/src/utils/constants.ts`:
+
+```typescript
+export const API_BASE_URL = "http://localhost:8000/api";
 ```
+
+### 3. Iniciar servidor de desenvolvimento
+
+```bash
+npm run dev
+# Acesse: http://localhost:5173
+```
+
+## 📦 Scripts Disponíveis
+
+```bash
+npm run dev         # Servidor de desenvolvimento (porta 5173)
+npm run build       # Build de produção
+npm run preview     # Preview do build de produção
+npm run lint        # Executar ESLint
+```
+
+## 📁 Estrutura do Projeto
+
+```
+frontend/src/
+├── components/          # Componentes reutilizáveis
+│   ├── animations/     # Componentes de animação (Framer Motion)
+│   ├── branding/       # Logo, marca
+│   ├── buttons/        # Botões customizados
+│   ├── Calendar/       # Componentes do calendário
+│   ├── cards/          # Cards de ideias, timeline, dashboard
+│   ├── common/         # Componentes genéricos (modals, badges, etc.)
+│   ├── forms/          # Inputs, selectors, editores
+│   └── layout/         # Layout (Header, Sidebar, Footer)
+├── pages/              # Páginas principais
+│   ├── Calendar/       # Calendário interativo
+│   ├── Dashboard/      # Dashboard com cards e estatísticas
+│   ├── Ideas/          # Lista, detalhes, formulário de ideias
+│   ├── Login/          # Login e registro
+│   ├── Profile/        # Perfil do usuário
+│   └── Timeline/       # Timeline de apresentações
+├── services/           # Camada de serviços (API)
+│   ├── api.ts         # Cliente Axios configurado
+│   ├── auth.service.ts
+│   ├── ideas.service.ts
+│   ├── comments.service.ts
+│   └── notifications.service.ts
+├── hooks/              # Custom hooks
+│   ├── useIdeaPermissions.ts
+│   ├── useSessionManager.ts
+│   └── useConfetti.ts
+├── types/              # TypeScript types/interfaces
+│   └── index.ts       # Tipos centralizados
+├── utils/              # Utilitários
+│   ├── constants.ts   # Constantes (URLs, storage keys, etc.)
+│   ├── formatDate.ts  # Formatação de datas
+│   ├── errorHandler.ts
+│   └── queryInvalidation.ts
+├── App.tsx             # Componente raiz
+└── main.tsx            # Entry point
+```
+
+## 🎯 Conceitos Importantes
+
+### Service Layer Pattern
+
+**Nunca** chame a API diretamente dos componentes. Sempre use services:
+
+```typescript
+// ✅ CORRETO
+import { ideasService } from '@/services/ideas.service';
+const idea = await ideasService.getIdea(id);
+
+// ❌ ERRADO
+import { api } from '@/services/api';
+const idea = await api.get(`/ideas/${id}/`);
+```
+
+### React Query Keys
+
+Estrutura consistente para cache:
+
+```typescript
+// Listas
+["ideas", filters]           // Lista com filtros
+["ideas", "timeline"]        // Timeline
+["comments", ideaId]         // Comentários de uma ideia
+
+// Detalhes
+["idea", ideaId]             // Ideia específica
+["idea", ideaId, "permissions"] // Permissões da ideia
+["notifications"]            // Notificações do usuário
+```
+
+### Autenticação JWT
+
+1. Tokens armazenados em `localStorage`
+2. Axios interceptor adiciona token automaticamente
+3. Refresh automático em 401
+4. Logout + redirect se refresh falhar
+
+Veja `frontend/src/services/api.ts` (linhas 30-120).
+
+### Status Dinâmico
+
+Status não é setável diretamente. Ele é calculado no backend:
+
+```typescript
+// ✅ CORRETO - Atualizar data_agendada
+await ideasService.reschedule(ideaId, newDate);
+
+// ❌ ERRADO - Não tente setar status
+idea.status = "agendado"; // Não funciona!
+```
+
+### Permissões
+
+Sempre verifique permissões via hook:
+
+```typescript
+const { data: permissions } = useIdeaPermissions(ideaId);
+
+// Condicionalmente renderizar
+{permissions?.editable && <EditButton />}
+{permissions?.deletable && <DeleteButton />}
+{permissions?.reschedulable && <RescheduleButton />}
+```
+
+## 🎨 Componentes Principais
+
+### Páginas
+
+- **Dashboard** - Visão geral, estatísticas, próximas apresentações
+- **IdeasListPage** - Lista paginada com filtros e busca
+- **IdeaDetailPage** - Detalhes, comentários, ações (votar, voluntariar)
+- **IdeaFormPage** - Criar/editar ideias com TipTap
+- **CalendarPage** - Calendário FullCalendar com drag & drop
+- **TimelinePage** - Timeline ordenada com highlights
+- **ProfilePage** - Perfil, ideias criadas, apresentações
+
+### Componentes Reutilizáveis
+
+- **IdeaCard** - Card de ideia (usado em listas/grid)
+- **TimelineCard** - Card para timeline (com destaque)
+- **StatusBadge** - Badge de status (pendente/agendado/concluído)
+- **PriorityBadge** - Badge de prioridade (baixa/média/alta)
+- **TagBadge** - Badge de tag
+- **HypeDisplay** - Exibição de votos com barra de progresso
+- **RichTextEditor** - Editor TipTap configurado
+- **MarkdownRenderer** - Renderizador de Markdown
+- **CommentsSection** - Seção de comentários aninhados
+- **Modal** - Modal genérico
+- **ConfirmModal** - Modal de confirmação
+- **DateTimePicker** - Seletor de data/hora
+
+### Animações
+
+Todos os componentes de animação estão em `components/animations/`:
+
+- **AnimatedPage** - Wrapper para páginas (fade-in)
+- **AnimatedGrid** - Grid com stagger
+- **AnimatedButton** - Botão com hover/tap
+- **AnimatedCounter** - Contador animado
+
+## 🔍 Features Principais
+
+### Calendário Interativo
+
+- 4 visualizações: Mês, Semana, Dia, Lista
+- Drag & drop para reagendar
+- Locale pt-BR
+- Dark mode
+- Responsivo
+
+### Timeline
+
+- Ordenação cronológica
+- Highlights inteligentes (apresentações de hoje ou próxima)
+- Agrupamento por data
+- Filtros por status
+
+### Sistema de Votação (Hype)
+
+- Toggle com um clique
+- Optimistic updates
+- Animação confetti ao hypar
+- Barra de progresso visual
+
+### Comentários
+
+- Aninhamento de 2 níveis
+- Edição/exclusão (para autores)
+- Markdown suportado
+- Tempo relativo (ex: "há 2 horas")
+
+### Notificações
+
+- Badge no header
+- Dropdown com últimas notificações
+- Auto-refetch a cada 30s
+- Marcar como lida (individual ou todas)
+
+## 🧪 Testes
+
+```bash
+npm run test
+```
+
+## 🔧 Configuração
+
+### ESLint
+
+Configurado em `eslint.config.js` com:
+
+- React recomendado
+- TypeScript
+- Hooks rules
+
+### Tailwind CSS
+
+Configurado em `tailwind.config.js` com:
+
+- Dark mode class-based
+- Cores customizadas
+- Animações personalizadas
+
+### Vite
+
+Configurado em `vite.config.ts` com:
+
+- Path aliases (`@/` → `src/`)
+- React plugin
+- Otimizações de build
+
+## 🎨 Temas
+
+### Dark Mode
+
+Ativado via classe `dark` no `<html>`:
+
+```typescript
+// Toggle dark mode
+document.documentElement.classList.toggle('dark');
+```
+
+Classes Tailwind suportam dark mode:
+
+```tsx
+<div className="bg-white dark:bg-gray-800">
+```
+
+## 📖 Documentação Adicional
+
+- [README Principal](../README.md) - Guia geral do projeto
+- [Copilot Instructions](../.github/copilot-instructions.md) - Guia para IAs
+- [Backend README](../backend/README.md) - Documentação da API
+
+## 🐛 Troubleshooting
+
+### Erro de CORS
+
+- Verifique se backend está rodando
+- Backend deve ter `CORS_ALLOWED_ORIGINS=http://localhost:5173`
+
+### JWT expirado
+
+- Frontend tem auto-refresh configurado
+- Se continuar, faça logout/login novamente
+
+### Componentes não renderizam
+
+- Verifique console do navegador
+- Verifique se React Query devtools está habilitado (dev)
+
+### Build falha
+
+- Rode `npm install` novamente
+- Verifique versão do Node.js (18+)
+- Limpe cache: `rm -rf node_modules package-lock.json && npm install`
+
+---
+
+Desenvolvido com React ⚛️ por [@JhonatanRian](https://github.com/JhonatanRian)

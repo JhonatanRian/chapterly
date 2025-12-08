@@ -46,7 +46,6 @@ export {
   Input,
   Textarea,
   ImageUpload,
-  RichTextEditor,
   MarkdownEditor,
   MarkdownRenderer,
   TagSelector,

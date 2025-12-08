@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Database files
+*.sqlite3
+*.db
+
 # Distribution / packaging
 .Python
 build/
@@ -44,6 +48,8 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.mypy_cache/
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *.cover

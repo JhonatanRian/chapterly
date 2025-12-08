@@ -3,7 +3,6 @@ export type { InputProps } from "./Input";
 export { Textarea } from "./Textarea";
 export type { TextareaProps } from "./Textarea";
 export { ImageUpload } from "./ImageUpload";
-export { RichTextEditor } from "./RichTextEditor";
 export { MarkdownEditor } from "./MarkdownEditor";
 export { MarkdownRenderer } from "./MarkdownRenderer";
 export { TagSelector } from "./TagSelector";
