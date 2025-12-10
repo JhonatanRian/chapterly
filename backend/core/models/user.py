@@ -3,9 +3,6 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """
-    Modelo de usuário customizado com foto de perfil
-    """
 
     avatar = models.ImageField(
         upload_to="avatars/",
