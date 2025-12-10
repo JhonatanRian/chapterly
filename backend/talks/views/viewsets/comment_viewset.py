@@ -3,7 +3,8 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from talks.models import Comment, Notification
+from talks.models import Comment
+from talks.notifications.signals import comment_created
 from talks.serializers import (
     CommentSerializer,
 )
@@ -27,15 +28,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         comment = serializer.save(user=self.request.user)
 
-        # Criar notificação para o autor da ideia
-        idea = comment.idea
-        if idea.autor != self.request.user:
-            Notification.objects.create(
-                user=idea.autor,
-                tipo="comentario",
-                mensagem=f"{self.request.user.username} comentou em '{idea.titulo}'",
-                idea=idea,
-            )
+        comment_created.send(
+            sender=self.__class__, comment=comment, user=self.request.user
+        )
 
     def perform_destroy(self, instance):
         if instance.user != self.request.user and not self.request.user.is_staff:

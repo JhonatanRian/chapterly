@@ -7,7 +7,12 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 
 from talks.filters import IdeaFilter
-from talks.models import Idea, Notification, Vote
+from talks.models import Idea, Vote
+from talks.notifications.signals import (
+    idea_rescheduled,
+    idea_voted,
+    volunteer_registered,
+)
 from talks.permissions import IsPresenterOrOwnerOrAdmin
 from talks.serializers import (
     IdeaCreateUpdateSerializer,
@@ -132,13 +137,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK,
             )
         else:
-            if idea.autor != user:
-                Notification.objects.create(
-                    user=idea.autor,
-                    tipo="voto",
-                    mensagem=f"{user.username} votou na sua ideia '{idea.titulo}'",
-                    idea=idea,
-                )
+            idea_voted.send(sender=self.__class__, idea=idea, user=user, voted=True)
 
             return Response(
                 {"detail": "Voto registrado com sucesso.", "voted": True},
@@ -164,13 +163,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
         idea.apresentador = user
         idea.save()
 
-        if idea.autor != user:
-            Notification.objects.create(
-                user=idea.autor,
-                tipo="voluntario",
-                mensagem=f"{user.username} se voluntariou para apresentar '{idea.titulo}'",
-                idea=idea,
-            )
+        volunteer_registered.send(sender=self.__class__, idea=idea, user=user)
 
         return Response(
             {"detail": "Você se inscreveu como apresentador!"},
@@ -279,22 +272,17 @@ class IdeaViewSet(viewsets.ModelViewSet):
         serializer = RescheduleSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        old_date = idea.data_agendada
         idea.data_agendada = serializer.validated_data["data_agendada"]
         idea.save()
 
-        notified_users = set()
-        if idea.autor != request.user:
-            notified_users.add(idea.autor)
-        if idea.apresentador and idea.apresentador != request.user:
-            notified_users.add(idea.apresentador)
-
-        for user in notified_users:
-            Notification.objects.create(
-                user=user,
-                tipo="agendamento",
-                mensagem=f"{request.user.username} reagendou '{idea.titulo}'",
-                idea=idea,
-            )
+        idea_rescheduled.send(
+            sender=self.__class__,
+            idea=idea,
+            user=request.user,
+            old_date=old_date,
+            new_date=idea.data_agendada,
+        )
 
         serializer = IdeaDetailSerializer(idea, context={"request": request})
         return Response(serializer.data)
@@ -323,4 +311,3 @@ class IdeaViewSet(viewsets.ModelViewSet):
         }
 
         return Response(stats)
-
