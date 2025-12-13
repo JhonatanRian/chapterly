@@ -7,6 +7,7 @@ export interface User {
   last_name: string;
   avatar?: string | null;
   date_joined?: string;
+  is_staff?: boolean;
   ideias_criadas_count?: number;
   apresentacoes_count?: number;
   votos_count?: number;

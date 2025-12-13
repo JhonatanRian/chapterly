@@ -11,10 +11,12 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "@/providers/QueryProvider";
 import { Toaster, Logo } from "@/components";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { FeatureProtectedRoute } from "@/components/common/FeatureProtectedRoute";
 import { SessionExpiredModal } from "@/components/common/SessionExpiredModal";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { cleanInvalidTokens } from "@/utils/tokenValidation";
 import { useThemeStore } from "@/stores/themeStore";
+import { ConfigProvider } from "@/contexts/ConfigContext";
 import {
   LoginPage,
   RegisterPage,
@@ -26,6 +28,7 @@ import {
   CalendarPage,
   TimelinePage,
   EditProfilePage,
+  ConfigPage,
 } from "@/pages";
 
 /**
@@ -69,11 +72,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+      <ConfigProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
           {/* Protected routes */}
           <Route
@@ -88,7 +92,9 @@ function App() {
             path="/ideas"
             element={
               <ProtectedRoute>
-                <IdeasListPage />
+                <FeatureProtectedRoute feature="chapter">
+                  <IdeasListPage />
+                </FeatureProtectedRoute>
               </ProtectedRoute>
             }
           />
@@ -96,7 +102,9 @@ function App() {
             path="/ideas/new"
             element={
               <ProtectedRoute>
-                <IdeaFormPage />
+                <FeatureProtectedRoute feature="chapter">
+                  <IdeaFormPage />
+                </FeatureProtectedRoute>
               </ProtectedRoute>
             }
           />
@@ -104,7 +112,9 @@ function App() {
             path="/ideas/:id"
             element={
               <ProtectedRoute>
-                <IdeaDetailPage />
+                <FeatureProtectedRoute feature="chapter">
+                  <IdeaDetailPage />
+                </FeatureProtectedRoute>
               </ProtectedRoute>
             }
           />
@@ -112,7 +122,9 @@ function App() {
             path="/ideas/:id/edit"
             element={
               <ProtectedRoute>
-                <IdeaFormPage />
+                <FeatureProtectedRoute feature="chapter">
+                  <IdeaFormPage />
+                </FeatureProtectedRoute>
               </ProtectedRoute>
             }
           />
@@ -120,7 +132,9 @@ function App() {
             path="/calendar"
             element={
               <ProtectedRoute>
-                <CalendarPage />
+                <FeatureProtectedRoute feature="chapter">
+                  <CalendarPage />
+                </FeatureProtectedRoute>
               </ProtectedRoute>
             }
           />
@@ -128,7 +142,9 @@ function App() {
             path="/timeline"
             element={
               <ProtectedRoute>
-                <TimelinePage />
+                <FeatureProtectedRoute feature="chapter">
+                  <TimelinePage />
+                </FeatureProtectedRoute>
               </ProtectedRoute>
             }
           />
@@ -145,6 +161,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/config"
+            element={
+              <ProtectedRoute>
+                <ConfigPage />
               </ProtectedRoute>
             }
           />
@@ -191,6 +215,7 @@ function App() {
 
       {/* React Query Devtools (only in dev) */}
       <ReactQueryDevtools initialIsOpen={false} />
+      </ConfigProvider>
     </QueryClientProvider>
   );
 }
