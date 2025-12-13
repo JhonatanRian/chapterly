@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from core.decorators import require_feature
 from talks.filters import IdeaFilter
 from talks.models import Idea, Vote
 from talks.notifications.signals import (
@@ -124,6 +125,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
         },
     )
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    @require_feature("chapter_enabled")
     def vote(self, request, pk=None):
         idea = self.get_object()
         user = request.user
@@ -150,6 +152,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
         request=None,
     )
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    @require_feature("chapter_enabled")
     def volunteer(self, request, pk=None):
         idea = self.get_object()
         user = request.user
@@ -175,6 +178,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
         description="Remove-se como apresentador (ou remove outro se for admin/autor)",
     )
     @action(detail=True, methods=["delete"], permission_classes=[IsAuthenticated])
+    @require_feature("chapter_enabled")
     def unvolunteer(self, request, pk=None):
         idea = self.get_object()
         user = request.user
@@ -266,6 +270,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
         methods=["patch"],
         permission_classes=[IsAuthenticated, IsPresenterOrOwnerOrAdmin],
     )
+    @require_feature("chapter_enabled")
     def reschedule(self, request, pk=None):
         idea = self.get_object()
 

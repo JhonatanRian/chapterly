@@ -1,7 +1,12 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from core import views
+
+# Router para ViewSets
+router = DefaultRouter()
+router.register(r"config", views.ConfigurationViewSet, basename="config")
 
 urlpatterns = [
     # Autenticação
@@ -16,4 +21,5 @@ urlpatterns = [
     path(
         "change-password/", views.ChangePasswordView.as_view(), name="change_password"
     ),
+    path("", include(router.urls)),
 ]

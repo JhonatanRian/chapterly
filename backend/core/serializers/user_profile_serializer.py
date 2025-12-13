@@ -26,13 +26,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "last_name",
             "avatar",
             "date_joined",
+            "is_staff",
             "ideias_criadas_count",
             "apresentacoes_count",
             "votos_count",
             "ideias_criadas",
             "ideias_apresentando",
         ]
-        read_only_fields = ["id", "username", "date_joined"]
+        read_only_fields = ["id", "username", "date_joined", "is_staff"]
 
     def get_ideias_criadas(self, obj):
         from talks.serializers import IdeaListSerializer

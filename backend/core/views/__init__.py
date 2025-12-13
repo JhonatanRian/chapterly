@@ -4,6 +4,7 @@ from core.views.logout_view import LogoutView
 from core.views.register_view import RegisterView
 from core.views.user_profile_view import UserProfileView
 from core.views.user_stats_view import UserStatsView
+from core.views.configuration import ConfigurationViewSet
 
 __all__ = [
     "ChangePasswordView",
@@ -12,4 +13,5 @@ __all__ = [
     "RegisterView",
     "UserProfileView",
     "UserStatsView",
+    "ConfigurationViewSet",
 ]

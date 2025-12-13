@@ -50,6 +50,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.middleware.FeatureFlagMiddleware",
 ]
 
 ROOT_URLCONF = "backend.urls"
@@ -158,6 +159,15 @@ COMPANY_NAME = env("COMPANY_NAME", default="Chapterly")
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+        "TIMEOUT": 3600,  # 1 hora
+        "OPTIONS": {"MAX_ENTRIES": 1000},
+    }
+}
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Chapterly API",
