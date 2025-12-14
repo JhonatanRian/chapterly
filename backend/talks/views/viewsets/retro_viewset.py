@@ -1,26 +1,27 @@
 from core.decorators import require_feature
 from django.db.models import Avg, Count, Prefetch
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from talks.models import Retro, RetroItem
-from talks.permissions import IsOwnerOrReadOnly
+from talks.permissions import IsOwnerOrReadOnly, IsStaffOrAdmin
 from talks.serializers import (
     RetroCreateUpdateSerializer,
     RetroDetailSerializer,
     RetroItemCreateSerializer,
-    RetroItemSerializer,
     RetroListSerializer,
+    GlobalMetricsResponseSerializer,
 )
 
 
 class RetroViewSet(viewsets.ModelViewSet):
-
     def get_permissions(self) -> list:
         if self.action in ["join", "leave", "add_item", "vote_item"]:
             return [IsAuthenticated()]
+        if self.action in ["create"]:
+            return [IsAuthenticated(), IsStaffOrAdmin()]
         return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
     def get_queryset(self):
@@ -173,6 +174,12 @@ class RetroViewSet(viewsets.ModelViewSet):
     def leave(self, request, pk=None):
         retro = self.get_object()
 
+        if retro.status == "concluida":
+            return Response(
+                {"detail": "Não é possível sair de uma retrospectiva concluída."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not retro.participantes.filter(id=request.user.id).exists():
             return Response(
                 {"detail": "Você não é participante desta retrospectiva."},
@@ -194,13 +201,112 @@ class RetroViewSet(viewsets.ModelViewSet):
             }
         )
 
+    def _calculate_engagement_analysis(self, queryset):
+        """
+        Calcula análise de engajamento do time.
+        """
+        # Média de itens por pessoa
+        total_autores_unicos = (
+            RetroItem.objects.filter(retro__in=queryset)
+            .values("autor")
+            .distinct()
+            .count()
+        )
+
+        total_itens = RetroItem.objects.filter(retro__in=queryset).count()
+        media_itens_por_pessoa = (
+            total_itens / total_autores_unicos if total_autores_unicos > 0 else 0
+        )
+
+        # Participantes por retro
+        retros_com_participantes = queryset.prefetch_related("participantes")
+        participantes_por_retro = {
+            retro.id: retro.participantes.count() for retro in retros_com_participantes
+        }
+
+        # Trend de participação (últimas 5 vs 5 anteriores)
+        retros_ordenadas = queryset.order_by("-data")
+        ultimas_5 = list(retros_ordenadas[:5])
+        anteriores_5 = list(retros_ordenadas[5:10])
+
+        media_ultimas = (
+            sum([r.participantes.count() for r in ultimas_5]) / 5 if ultimas_5 else 0
+        )
+        media_anteriores = (
+            sum([r.participantes.count() for r in anteriores_5]) / 5
+            if anteriores_5
+            else 0
+        )
+
+        # Determinar trend (com threshold de 10% para evitar variação normal)
+        if media_ultimas > media_anteriores * 1.1:
+            trend = "crescente"
+        elif media_ultimas < media_anteriores * 0.9:
+            trend = "decrescente"
+        else:
+            trend = "estável"
+
+        return {
+            "media_itens_por_pessoa": round(media_itens_por_pessoa, 1),
+            "participantes_por_retro": participantes_por_retro,
+            "trend_participacao": trend,
+        }
+
+    def _calculate_pattern_analysis(self, queryset, request):
+        """
+        Calcula análise de padrões nas retrospectivas.
+        """
+        itens_por_categoria = dict(
+            RetroItem.objects.filter(retro__in=queryset)
+            .values("categoria")
+            .annotate(total=Count("id"))
+            .values_list("categoria", "total")
+        )
+
+        # Top 10 itens mais votados (convert to list to fix serialization)
+        top_itens_votados = list(
+            RetroItem.objects.annotate(num_votes=Count("votes"))
+            .filter(retro__in=queryset)
+            .order_by("-num_votes")[:10]
+            .prefetch_related("votes")
+            .select_related("autor", "retro")
+        )
+
+        # Total de action items
+        total_action_items = RetroItem.objects.filter(
+            retro__in=queryset, categoria="action_items"
+        ).count()
+
+        return {
+            "itens_por_categoria": itens_por_categoria,
+            "top_itens_votados": top_itens_votados,
+            "total_action_items": total_action_items,
+        }
+
     @action(detail=False, methods=["get"])
+    @permission_classes([IsAuthenticated, IsStaffOrAdmin])
     @require_feature("retro_enabled")
     def metrics(self, request):
+        """
+        Retorna análise completa com:
+        - Métricas gerais (totais, médias, distribuição por status)
+        - Análise de engajamento (participação, trend)
+        - Análise de padrões (categorias, top itens)
+        """
+        from talks.serializers.retro_metrics_serializer import (
+            GlobalMetricsResponseSerializer,
+        )
 
-        total_retros = Retro.objects.count()
+        queryset = self.get_queryset()
 
-        retros_stats = Retro.objects.aggregate(
+        # ===== MÉTRICAS GERAIS (TASK 3) =====
+        total_retros = queryset.count()
+        total_concluidas = queryset.filter(status="concluida").count()
+        taxa_conclusao = (
+            (total_concluidas / total_retros * 100) if total_retros > 0 else 0
+        )
+
+        retros_stats = queryset.aggregate(
             total_items=Count("items", distinct=True),
             total_votos=Count("items__votes", distinct=True),
             media_items=Avg("items__id"),
@@ -208,26 +314,40 @@ class RetroViewSet(viewsets.ModelViewSet):
         )
 
         retros_por_status = dict(
-            Retro.objects.values("status")
+            queryset.values("status")
             .annotate(count=Count("id"))
             .values_list("status", "count")
         )
 
-        retros_recentes = Retro.objects.select_related("autor").order_by("-data")[:5]
-        retros_recentes_data = RetroListSerializer(
-            retros_recentes, many=True, context={"request": request}
-        ).data
+        # Get recent retros - convert to list to avoid queryset serialization
+        retros_recentes = list(queryset.select_related("autor").order_by("-data")[:5])
 
-        return Response(
-            {
-                "total_retros": total_retros,
-                "total_items": retros_stats["total_items"] or 0,
-                "total_votos": retros_stats["total_votos"] or 0,
-                "retros_por_status": retros_por_status,
-                "media_items_por_retro": round(retros_stats["media_items"] or 0, 1),
-                "media_participantes_por_retro": round(
-                    retros_stats["media_participantes"] or 0, 1
-                ),
-                "retros_recentes": retros_recentes_data,
-            }
+        metricas_gerais = {
+            "total_retros": total_retros,
+            "total_items": retros_stats["total_items"] or 0,
+            "total_votos": retros_stats["total_votos"] or 0,
+            "media_items_por_retro": round(retros_stats["media_items"] or 0, 1),
+            "media_participantes_por_retro": round(
+                retros_stats["media_participantes"] or 0, 1
+            ),
+            "taxa_conclusao": round(taxa_conclusao, 2),
+            "retros_por_status": retros_por_status,
+            "retros_recentes": retros_recentes,
+        }
+
+        # ===== ANÁLISE DE ENGAJAMENTO (TASK 4) =====
+        analise_engajamento = self._calculate_engagement_analysis(queryset)
+
+        # ===== ANÁLISE DE PADRÕES (TASK 5) =====
+        analise_padroes = self._calculate_pattern_analysis(queryset, request)
+
+        response_data = {
+            "metricas_gerais": metricas_gerais,
+            "analise_engajamento": analise_engajamento,
+            "analise_padroes": analise_padroes,
+        }
+
+        serializer = GlobalMetricsResponseSerializer(
+            response_data, context={"request": request}
         )
+        return Response(serializer.data)

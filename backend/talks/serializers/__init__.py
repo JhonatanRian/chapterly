@@ -19,6 +19,12 @@ from talks.serializers.retro_template_serializer import (
     RetroTemplateListSerializer,
     RetroTemplateSerializer,
 )
+from talks.serializers.retro_metrics_serializer import (
+    RetroMetricsSerializer,
+    EngagementAnalysisSerializer,
+    PatternAnalysisSerializer,
+    GlobalMetricsResponseSerializer,
+)
 from talks.serializers.tag_serializer import TagSerializer
 from talks.serializers.vote_serializer import VoteSerializer
 
@@ -38,4 +44,8 @@ __all__ = [
     "RetroItemCreateSerializer",
     "RetroTemplateSerializer",
     "RetroTemplateListSerializer",
+    "RetroMetricsSerializer",
+    "EngagementAnalysisSerializer",
+    "PatternAnalysisSerializer",
+    "GlobalMetricsResponseSerializer",
 ]
