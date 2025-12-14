@@ -37,7 +37,7 @@ const RetroDetailPage = () => {
   const { data: retro, isLoading } = useQuery({
     queryKey: ["retro", id],
     queryFn: () => retrosService.getById(Number(id)),
-    refetchInterval: 5000, // Refetch a cada 5 segundos
+    refetchInterval: 1500, // Refetch a cada 1.5 segundos
     refetchIntervalInBackground: false, // Pausa quando aba não está focada
     refetchOnWindowFocus: true, // Refetch quando usuário volta para a aba
   });
@@ -93,21 +93,6 @@ const RetroDetailPage = () => {
   const addItemMutation = useMutation({
     mutationFn: (data: RetroItemFormData) =>
       retrosService.addItem(Number(id), data),
-    onSuccess: async (newItem, variables) => {
-      // Forçar refetch imediato da retro
-      await queryClient.refetchQueries({ 
-        queryKey: ["retro", id],
-        type: 'active'
-      });
-      toast.success("Item adicionado com sucesso!");
-      // Limpar apenas o input da categoria específica
-      setCategoryInputs(prev => ({ ...prev, [variables.categoria]: "" }));
-    },
-    onError: (error: any) => {
-      const errorMsg = error.response?.data?.detail || "Erro ao adicionar item";
-      toast.error(errorMsg);
-      console.error("Erro ao adicionar item:", error);
-    },
   });
 
   // Mutation para votar
@@ -143,11 +128,71 @@ const RetroDetailPage = () => {
       toast.error("Digite algo antes de adicionar");
       return;
     }
-    addItemMutation.mutate({
+    
+    // Criar item temporário para UI optimista
+    const tempItem = {
+      id: -Date.now(), // ID negativo temporário
       conteudo: content,
       categoria,
       ordem: 0,
+      autor: {
+        id: user?.id || 0,
+        username: user?.username || "Você",
+        avatar: user?.avatar || null,
+      },
+      vote_count: 0,
+      voted: false,
+      created_at: new Date().toISOString(),
+    };
+    
+    // Limpar input
+    setCategoryInputs(prev => ({ ...prev, [categoria]: "" }));
+    
+    // Adicionar item INSTANTANEAMENTE no cache
+    queryClient.setQueryData(["retro", id], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        items: [...(oldData.items || []), tempItem],
+      };
     });
+    
+    // Enviar ao servidor em background
+    addItemMutation.mutate(
+      {
+        conteudo: content,
+        categoria,
+        ordem: 0,
+      },
+      {
+        onSuccess: (newItem) => {
+          // Substituir item temporário pelo real
+          queryClient.setQueryData(["retro", id], (oldData: any) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              items: oldData.items.map((item: any) =>
+                item.id === tempItem.id ? newItem : item
+              ),
+            };
+          });
+        },
+        onError: (error: any) => {
+          // Remover item temporário em caso de erro
+          queryClient.setQueryData(["retro", id], (oldData: any) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              items: oldData.items.filter((item: any) => item.id !== tempItem.id),
+            };
+          });
+          
+          const errorMsg = error.response?.data?.detail || "Erro ao adicionar item";
+          toast.error(errorMsg);
+          console.error("Erro ao adicionar item:", error);
+        }
+      }
+    );
   };
 
   const handleInputChange = (categoria: string, value: string) => {
@@ -391,18 +436,22 @@ const RetroDetailPage = () => {
                       onKeyPress={(e) => handleKeyPress(e, category.slug)}
                       placeholder="Digite e pressione Enter..."
                       disabled={addItemMutation.isPending}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => handleAddItem(category.slug)}
                       disabled={addItemMutation.isPending || !categoryInputs[category.slug]?.trim()}
-                      className="px-3 py-2 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center"
+                      className="px-3 py-2 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center hover:scale-105 active:scale-95"
                       style={{
                         backgroundColor: categoryInputs[category.slug]?.trim() ? category.color : '#9CA3AF'
                       }}
                     >
-                      <Plus size={18} />
+                      {addItemMutation.isPending ? (
+                        <div className="w-[18px] h-[18px] border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Plus size={18} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -414,7 +463,7 @@ const RetroDetailPage = () => {
                   itemsByCategory[category.slug].map((item) => (
                     <div
                       key={item.id}
-                      className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600"
+                      className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600 animate-in fade-in slide-in-from-top-2 duration-500"
                     >
                       <p className="text-sm text-gray-800 dark:text-gray-200 mb-2">{item.conteudo}</p>
                       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">

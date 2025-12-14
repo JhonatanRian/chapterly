@@ -12,7 +12,6 @@ from talks.serializers import (
     RetroDetailSerializer,
     RetroItemCreateSerializer,
     RetroListSerializer,
-    GlobalMetricsResponseSerializer,
 )
 
 
@@ -29,9 +28,9 @@ class RetroViewSet(viewsets.ModelViewSet):
             "participantes",
             Prefetch(
                 "items",
-                queryset=RetroItem.objects.select_related("autor").prefetch_related(
-                    "votes"
-                ),
+                queryset=RetroItem.objects.select_related("autor")
+                .prefetch_related("votes")
+                .order_by("ordem", "id"),
             ),
         )
 
@@ -272,15 +271,9 @@ class RetroViewSet(viewsets.ModelViewSet):
             .select_related("autor", "retro")
         )
 
-        # Total de action items
-        total_action_items = RetroItem.objects.filter(
-            retro__in=queryset, categoria="action_items"
-        ).count()
-
         return {
             "itens_por_categoria": itens_por_categoria,
             "top_itens_votados": top_itens_votados,
-            "total_action_items": total_action_items,
         }
 
     @action(detail=False, methods=["get"])
