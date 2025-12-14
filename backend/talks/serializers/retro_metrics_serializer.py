@@ -82,9 +82,6 @@ class PatternAnalysisSerializer(serializers.Serializer):
         many=True,
         help_text="Top 10 itens com maior número de votos",
     )
-    total_action_items = serializers.IntegerField(
-        help_text="Total de itens na categoria action_items"
-    )
 
 
 class GlobalMetricsResponseSerializer(serializers.Serializer):

@@ -323,7 +323,6 @@ export interface RetroMetrics {
   analise_padroes: {
     itens_por_categoria: Record<string, number>;
     top_itens_votados: RetroItem[];
-    total_action_items: number;
   };
 }
 

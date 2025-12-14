@@ -74,22 +74,6 @@ export function PatternAnalysis({ analise }: PatternAnalysisProps) {
         </div>
       </div>
 
-      {/* Action Items */}
-      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
-          <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200">
-            Action Items Propostos
-          </h3>
-        </div>
-        <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          {analise.total_action_items}
-        </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Melhorias identificadas pelo time
-        </p>
-      </div>
-
       {/* Top 10 Itens Mais Votados */}
       <div>
         <div className="flex items-center gap-2 mb-3">

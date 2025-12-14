@@ -1,3 +1,4 @@
+import re
 from core.decorators import require_feature
 from django.db.models import Avg, Count, Prefetch
 from rest_framework import status, viewsets
@@ -225,25 +226,39 @@ class RetroViewSet(viewsets.ModelViewSet):
 
         # Trend de participação (últimas 5 vs 5 anteriores)
         retros_ordenadas = queryset.order_by("-data")
+        retros_ordenadas_count = retros_ordenadas.count()
         ultimas_5 = list(retros_ordenadas[:5])
         anteriores_5 = list(retros_ordenadas[5:10])
 
-        media_ultimas = (
-            sum([r.participantes.count() for r in ultimas_5]) / 5 if ultimas_5 else 0
-        )
-        media_anteriores = (
-            sum([r.participantes.count() for r in anteriores_5]) / 5
-            if anteriores_5
-            else 0
-        )
+        if ultimas_5 and anteriores_5:
+            media_ultimas = (
+                sum([r.participantes.count() for r in ultimas_5]) / 5 if ultimas_5 else 0
+            )
+            media_anteriores = (
+                sum([r.participantes.count() for r in anteriores_5]) / 5
+                if anteriores_5
+                else 0
+            )
 
-        # Determinar trend (com threshold de 10% para evitar variação normal)
-        if media_ultimas > media_anteriores * 1.1:
-            trend = "crescente"
-        elif media_ultimas < media_anteriores * 0.9:
-            trend = "decrescente"
+            # Determinar trend (com threshold de 10% para evitar variação normal)
+            if media_ultimas > media_anteriores * 1.1:
+                trend = "crescente"
+            elif media_ultimas < media_anteriores * 0.9:
+                trend = "decrescente"
+            else:
+                trend = "estável"
         else:
-            trend = "estável"
+            media = (
+                sum([r.participantes.count() for r in retros_ordenadas]) / retros_ordenadas.count()
+                if anteriores_5
+                else 0
+            )
+            if media > retros_ordenadas_count / 2:
+                trend = "crescente"
+            elif media < retros_ordenadas_count / 2:
+                trend = "decrescente"
+            else:
+                trend = "estável"
 
         return {
             "media_itens_por_pessoa": round(media_itens_por_pessoa, 1),
