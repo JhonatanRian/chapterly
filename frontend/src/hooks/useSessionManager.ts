@@ -191,16 +191,20 @@ export function useSessionManager() {
 
       switch (type) {
         case "LOGOUT":
-          // Outra aba fez logout
-          console.log("🔄 Logout detectado em outra aba");
-          logout();
-          queryClient.clear();
+          // Outra aba fez logout - apenas se estiver autenticado
+          if (isAuthenticated) {
+            console.log("🔄 Logout detectado em outra aba");
+            logout();
+            queryClient.clear();
+          }
           break;
 
         case "LOGIN":
-          // Outra aba fez login, recarregar a página para atualizar
-          console.log("🔄 Login detectado em outra aba");
-          window.location.reload();
+          // Outra aba fez login - apenas se NÃO estiver autenticado
+          if (!isAuthenticated) {
+            console.log("🔄 Login detectado em outra aba - recarregando");
+            window.location.reload();
+          }
           break;
 
         case "TOKEN_REFRESHED":
@@ -219,7 +223,7 @@ export function useSessionManager() {
     return () => {
       authChannel.removeEventListener("message", handleMessage);
     };
-  }, [logout]);
+  }, [logout, isAuthenticated]);
 
   /**
    * Inicia verificação periódica da sessão
