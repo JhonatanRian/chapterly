@@ -12,6 +12,7 @@ import type {
   RetroItemFormData,
   RetroTemplate,
   RetroMetrics,
+  RetroMetricsFilters,
   RetroFilters,
   VoteItemResponse,
   PaginatedResponse,
@@ -133,9 +134,12 @@ export const retrosService = {
 
   /**
    * Busca métricas agregadas sobre retrospectivas
+   * @param filters - Filtros opcionais (status, autor, data_inicio, data_fim)
    */
-  async getMetrics(): Promise<RetroMetrics> {
-    const response = await api.get<RetroMetrics>(ENDPOINTS.METRICS);
+  async getMetrics(filters?: RetroMetricsFilters): Promise<RetroMetrics> {
+    const response = await api.get<RetroMetrics>(ENDPOINTS.METRICS, {
+      params: filters,
+    });
     return response.data;
   },
 };

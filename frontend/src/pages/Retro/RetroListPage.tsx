@@ -15,9 +15,12 @@ import {
   AnimatedGrid,
   AnimatedGridItem,
 } from "@/components/animations";
+import { useAuthStore } from "@/stores/authStore";
 
 const RetroListPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isAdmin = user?.is_staff || false;
   const [filters, setFilters] = useState<RetroFilters>({
     page: 1,
   });
@@ -119,72 +122,75 @@ const RetroListPage = () => {
               />
             ) : (
               <>
-                <AnimatedGrid>
+                <AnimatedGrid className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {data.results.map((retro) => (
                     <AnimatedGridItem key={retro.id}>
                       <Link
                         to={`/retros/${retro.id}`}
-                        className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200 p-6 block h-full"
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-200 h-full flex flex-col"
                       >
                         {/* Header */}
-                        <div className="flex justify-between items-start mb-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1 mr-2">
-                            {retro.titulo}
-                          </h3>
-                          {getStatusBadge(retro.status)}
+                        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 flex-1">
+                              {retro.titulo}
+                            </h3>
+                            {getStatusBadge(retro.status)}
+                          </div>
+
+                          {retro.descricao && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
+                              {retro.descricao}
+                            </p>
+                          )}
                         </div>
 
-                        {/* Description */}
-                        {retro.descricao && (
-                          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                            {retro.descricao}
-                          </p>
-                        )}
-
-                        {/* Metadata */}
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                            <Calendar size={16} />
-                            <span>{formatDate(retro.data)}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                            <span className="font-medium">{retro.template_nome}</span>
+                        {/* Info */}
+                        <div className="p-4 flex-1">
+                          <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-2">
+                              <Calendar size={14} />
+                              <span>{formatDate(retro.data)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{retro.template_nome}</span>
+                            </div>
                           </div>
                         </div>
 
                         {/* Stats */}
-                        <div className="flex items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                            <MessageSquare size={16} />
-                            <span>{retro.total_items}</span>
+                        <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                              <MessageSquare size={14} />
+                              <span>{retro.total_items}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                              <Users size={14} />
+                              <span>{retro.total_participantes}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                              <ThumbsUp size={14} />
+                              <span>{retro.total_votos}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                            <Users size={16} />
-                            <span>{retro.total_participantes}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                            <ThumbsUp size={16} />
-                            <span>{retro.total_votos}</span>
-                          </div>
-                        </div>
 
-                        {/* Author */}
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <div className="flex items-center gap-2">
+                          {/* Author */}
+                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
                             {retro.autor.avatar ? (
                               <img
                                 src={retro.autor.avatar}
                                 alt={retro.autor.username}
-                                className="w-6 h-6 rounded-full"
+                                className="w-5 h-5 rounded-full"
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                              <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">
                                 <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">
                                   {retro.autor.username.charAt(0).toUpperCase()}
                                 </span>
                               </div>
                             )}
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
                               {retro.autor.username}
                             </span>
                           </div>
@@ -224,7 +230,9 @@ const RetroListPage = () => {
             )}
           </>
         )}
-
+{isAdmin && (
+          <FAB onClick={() => navigate("/retros/new")} icon={<Plus size={24} />} label="Nova Retrospectiva" />
+        )}
         {/* FAB */}
         <FAB onClick={() => navigate("/retros/new")} icon={<Plus size={24} />} label="Nova Retrospectiva" />
       </AnimatedPage>

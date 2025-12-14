@@ -333,15 +333,17 @@ const RetroDetailPage = () => {
             </div>
 
             {retro.is_participante ? (
-              <Button
-                variant="secondary"
-                onClick={() => leaveMutation.mutate()}
-                disabled={leaveMutation.isPending || isAuthor}
-                className="flex items-center gap-2"
-              >
-                <UserMinus size={18} />
-                {isAuthor ? "Autor (não pode sair)" : "Sair"}
-              </Button>
+              retro.status !== "concluida" && (
+                <Button
+                  variant="secondary"
+                  onClick={() => leaveMutation.mutate()}
+                  disabled={leaveMutation.isPending || isAuthor}
+                  className="flex items-center gap-2"
+                >
+                  <UserMinus size={18} />
+                  {isAuthor ? "Autor (não pode sair)" : "Sair"}
+                </Button>
+              )
             ) : retro.status !== "concluida" ? (
               <Button
                 variant="primary"

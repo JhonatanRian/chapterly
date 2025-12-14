@@ -111,7 +111,7 @@ export function Sidebar({ className }: SidebarProps) {
             subItems: [
               { label: "Retrospectivas", path: "/retros" },
               { label: "Templates", path: "/retros/templates" },
-              { label: "Métricas", path: "/retros/metrics" },
+              ...(isAdmin ? [{ label: "Métricas", path: "/retros/metrics" }] : []),
             ],
           },
         ]

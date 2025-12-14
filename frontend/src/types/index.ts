@@ -305,13 +305,33 @@ export interface RetroFormData {
 }
 
 export interface RetroMetrics {
-  total_retros: number;
-  total_items: number;
-  total_votos: number;
-  retros_por_status: Record<RetroStatus, number>;
-  media_items_por_retro: number;
-  media_participantes_por_retro: number;
-  retros_recentes: RetroListItem[];
+  metricas_gerais: {
+    total_retros: number;
+    total_items: number;
+    total_votos: number;
+    media_items_por_retro: number;
+    media_participantes_por_retro: number;
+    taxa_conclusao: number;
+    retros_por_status: Record<RetroStatus, number>;
+    retros_recentes: RetroListItem[];
+  };
+  analise_engajamento: {
+    media_itens_por_pessoa: number;
+    participantes_por_retro: Record<number, number>;
+    trend_participacao: 'crescente' | 'estável' | 'decrescente';
+  };
+  analise_padroes: {
+    itens_por_categoria: Record<string, number>;
+    top_itens_votados: RetroItem[];
+    total_action_items: number;
+  };
+}
+
+export interface RetroMetricsFilters {
+  status?: RetroStatus;
+  autor?: number;
+  data_inicio?: string;
+  data_fim?: string;
 }
 
 export interface RetroFilters {
