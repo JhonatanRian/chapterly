@@ -218,3 +218,113 @@ export interface ThemeStore {
   toggleTheme: () => void;
   setTheme: (theme: "light" | "dark") => void;
 }
+
+// Retro Types
+export type RetroStatus = "rascunho" | "em_andamento" | "concluida";
+
+export interface RetroTemplateCategory {
+  name: string;
+  slug: string;
+  icon: string;
+  color: string;
+}
+
+export interface RetroTemplate {
+  id: number;
+  nome: string;
+  descricao: string;
+  categorias: RetroTemplateCategory[];
+  is_default: boolean;
+  is_system: boolean;
+  total_retros?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RetroItemFormData {
+  categoria: string;
+  conteudo: string;
+  ordem?: number;
+}
+
+export interface RetroItem {
+  id: number;
+  retro: number;
+  categoria: string;
+  categoria_info: RetroTemplateCategory | null;
+  conteudo: string;
+  autor: User;
+  vote_count: number;
+  has_voted: boolean;
+  ordem: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RetroListItem {
+  id: number;
+  titulo: string;
+  descricao: string;
+  data: string;
+  status: RetroStatus;
+  template: number;
+  template_nome: string;
+  autor: User;
+  total_items: number;
+  total_participantes: number;
+  total_votos: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RetroDetail {
+  id: number;
+  titulo: string;
+  descricao: string;
+  data: string;
+  status: RetroStatus;
+  template: RetroTemplate;
+  autor: User;
+  participantes: User[];
+  items: RetroItem[];
+  total_items: number;
+  total_participantes: number;
+  total_votos: number;
+  is_participante: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RetroFormData {
+  titulo: string;
+  descricao?: string;
+  data: string;
+  status: RetroStatus;
+  template: number;
+  participantes_ids?: number[];
+}
+
+export interface RetroMetrics {
+  total_retros: number;
+  total_items: number;
+  total_votos: number;
+  retros_por_status: Record<RetroStatus, number>;
+  media_items_por_retro: number;
+  media_participantes_por_retro: number;
+  retros_recentes: RetroListItem[];
+}
+
+export interface RetroFilters {
+  status?: RetroStatus;
+  autor?: number;
+  participante?: number;
+  data_inicio?: string;
+  data_fim?: string;
+  page?: number;
+}
+
+export interface VoteItemResponse {
+  voted: boolean;
+  vote_count: number;
+}
+

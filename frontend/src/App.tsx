@@ -30,22 +30,21 @@ import {
   EditProfilePage,
   ConfigPage,
 } from "@/pages";
+import {
+  RetroListPage,
+  RetroDetailPage,
+  RetroFormPage,
+  RetroTemplatesPage,
+  RetroTemplateFormPage,
+  RetroMetricsPage,
+} from "@/pages/Retro";
 
 /**
  * Componente que gerencia a sessão do usuário
  * Verifica expiração de token, tenta refresh automático, e sincroniza entre abas
- * IMPORTANTE: Só roda em rotas protegidas (não em /login ou /register)
  */
 function SessionManager() {
-  const location = useLocation();
-  const isPublicRoute =
-    location.pathname === "/login" || location.pathname === "/register";
-
-  // Só ativar session manager se NÃO estiver em rota pública
-  if (!isPublicRoute) {
-    useSessionManager();
-  }
-
+  useSessionManager();
   return null;
 }
 
@@ -148,6 +147,89 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Retro Routes */}
+          <Route
+            path="/retros"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroListPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/new"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroFormPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/templates"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroTemplatesPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/templates/new"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroTemplateFormPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/templates/:id/edit"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroTemplateFormPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/metrics"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroMetricsPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/:id"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroDetailPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/:id/edit"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroFormPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/profile"
             element={

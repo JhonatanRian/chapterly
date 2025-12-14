@@ -1,6 +1,6 @@
 import { cn } from "@/utils/cn";
-import { NavLink } from "react-router-dom";
-import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useConfig } from "@/contexts/ConfigContext";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -28,6 +28,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const { isChapterEnabled, isRetroEnabled } = useConfig();
   const { user } = useAuthStore();
+  const location = useLocation();
 
   const isAdmin = user?.is_staff || false;
 
@@ -168,6 +169,23 @@ export function Sidebar({ className }: SidebarProps) {
       : []),
   ];
 
+  // Auto-expandir menu pai quando a rota atual corresponder a um submenu
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    navItems.forEach((item) => {
+      if (item.subItems) {
+        const hasActiveSubItem = item.subItems.some((subItem) => 
+          currentPath === subItem.path || currentPath.startsWith(subItem.path + "/")
+        );
+        
+        if (hasActiveSubItem && !expandedMenus.includes(item.label)) {
+          setExpandedMenus((prev) => [...prev, item.label]);
+        }
+      }
+    });
+  }, [location.pathname]);
+
   return (
     <aside
       className={cn(
@@ -294,6 +312,7 @@ export function Sidebar({ className }: SidebarProps) {
                       <NavLink
                         key={subItem.path}
                         to={subItem.path}
+                        end
                         className={({ isActive }) =>
                           cn(
                             "block px-3 py-2 rounded-lg transition-colors text-sm",
