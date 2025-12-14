@@ -607,11 +607,316 @@ Apenas o autor ou admin.
 
 ---
 
+## Endpoints de Retrospectivas
+
+### Listar Retrospectivas
+
+**GET** `/api/retros/`
+
+**Query Params:**
+
+- `?status=rascunho|em_andamento|concluida`
+- `?autor={user_id}`
+- `?participante={user_id}`
+- `?search={text}` - Busca em título/descrição
+- `?ordering=-data_criacao` - Ordenação
+
+**Response (200):**
+
+```json
+{
+  "count": 10,
+  "results": [
+    {
+      "id": 1,
+      "titulo": "Sprint 24 Retrospectiva",
+      "descricao": "Revisão da sprint 24",
+      "status": "rascunho",
+      "template": { "id": 1, "nome": "Start Stop Continue" },
+      "autor": { "id": 1, "username": "johndoe" },
+      "participantes": [ ... ],
+      "data_retrospectiva": "2025-01-20T14:00:00Z",
+      "data_criacao": "2025-01-15T10:00:00Z",
+      "total_items": 15,
+      "total_participantes": 8
+    }
+  ]
+}
+```
+
+---
+
+### Criar Retrospectiva
+
+**POST** `/api/retros/`
+
+**Headers:** Authorization required
+
+**Body:**
+
+```json
+{
+  "titulo": "Sprint 24 Retrospectiva",
+  "descricao": "Revisão da sprint 24",
+  "template": 1,
+  "data_retrospectiva": "2025-01-20T14:00:00Z"
+}
+```
+
+---
+
+### Detalhes da Retrospectiva
+
+**GET** `/api/retros/{id}/`
+
+**Response (200):**
+
+```json
+{
+  "id": 1,
+  "titulo": "Sprint 24",
+  "status": "em_andamento",
+  "template": {
+    "id": 1,
+    "nome": "Start Stop Continue",
+    "categorias": [
+      {
+        "slug": "start",
+        "nome": "Start",
+        "emoji": "🟢",
+        "cor": "#22c55e"
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": 1,
+      "categoria": "start",
+      "conteudo": "Daily meetings mais curtos",
+      "autor": { "id": 2, "username": "jane" },
+      "votos": [ ... ],
+      "vote_count": 5,
+      "has_voted": true
+    }
+  ],
+  "participantes": [ ... ],
+  "total_items": 15,
+  "total_participantes": 8
+}
+```
+
+---
+
+### Entrar na Retrospectiva
+
+**POST** `/api/retros/{id}/join/`
+
+**Headers:** Authorization required
+
+**Response (200):**
+
+```json
+{
+  "detail": "Você entrou na retrospectiva!"
+}
+```
+
+---
+
+### Sair da Retrospectiva
+
+**POST** `/api/retros/{id}/leave/`
+
+**Headers:** Authorization required  
+**Nota:** Autor não pode sair da própria retro
+
+**Response (200):**
+
+```json
+{
+  "detail": "Você saiu da retrospectiva."
+}
+```
+
+---
+
+### Iniciar Retrospectiva
+
+**POST** `/api/retros/{id}/start/`
+
+**Headers:** Authorization required (apenas autor)
+
+Muda status de `rascunho` → `em_andamento`
+
+**Response (200):**
+
+```json
+{
+  "detail": "Retrospectiva iniciada!",
+  "status": "em_andamento"
+}
+```
+
+---
+
+### Finalizar Retrospectiva
+
+**POST** `/api/retros/{id}/finish/`
+
+**Headers:** Authorization required (apenas autor)
+
+Muda status de `em_andamento` → `concluida`
+
+**Response (200):**
+
+```json
+{
+  "detail": "Retrospectiva finalizada!",
+  "status": "concluida"
+}
+```
+
+---
+
+### Adicionar Item (Card)
+
+**POST** `/api/retros/{id}/items/`
+
+**Headers:** Authorization required (apenas participantes)
+
+**Body:**
+
+```json
+{
+  "categoria": "start",
+  "conteudo": "Daily meetings mais curtos"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "id": 1,
+  "categoria": "start",
+  "conteudo": "Daily meetings mais curtos",
+  "autor": { "id": 1, "username": "johndoe" },
+  "data_criacao": "2025-01-20T14:05:00Z",
+  "vote_count": 0,
+  "has_voted": false
+}
+```
+
+---
+
+### Votar em Item
+
+**POST** `/api/retros/{id}/items/{item_id}/vote/`
+
+**Headers:** Authorization required (apenas participantes)
+
+Toggle voto: adiciona se não votou, remove se já votou.
+
+**Response (200/201):**
+
+```json
+{
+  "detail": "Voto registrado com sucesso.",
+  "voted": true
+}
+```
+
+---
+
+### Deletar Item
+
+**DELETE** `/api/retros/{id}/items/{item_id}/`
+
+**Headers:** Authorization required (apenas autor do item ou admin)
+
+**Response (204):** No content
+
+---
+
+### Métricas Globais (Admin Only)
+
+**GET** `/api/retros/metrics/`
+
+**Headers:** Authorization required (apenas admin/staff)
+
+**Query Params:**
+
+- `?status=rascunho|em_andamento|concluida`
+- `?data_inicio=2025-01-01`
+- `?data_fim=2025-01-31`
+
+**Response (200):**
+
+```json
+{
+  "metricas_gerais": {
+    "total_retros": 15,
+    "total_items": 240,
+    "total_votos": 180,
+    "media_items_por_retro": 16.0,
+    "media_participantes_por_retro": 8.2,
+    "taxa_conclusao": 73.33,
+    "retros_por_status": {
+      "rascunho": 2,
+      "em_andamento": 2,
+      "concluida": 11
+    }
+  },
+  "analise_engajamento": {
+    "media_itens_por_pessoa": 2.1,
+    "participantes_por_retro": { "1": 8, "2": 7 },
+    "trend_participacao": "crescente"
+  },
+  "analise_padroes": {
+    "itens_por_categoria": {
+      "start": 80,
+      "stop": 60,
+      "continue": 100
+    },
+    "top_itens_votados": [ ... ],
+    "total_action_items": 25
+  }
+}
+```
+
+---
+
+### Listar Templates
+
+**GET** `/api/retro-templates/`
+
+**Response (200):**
+
+```json
+[
+  {
+    "id": 1,
+    "nome": "Start Stop Continue",
+    "descricao": "O que começar, parar e continuar fazendo",
+    "categorias": [
+      {
+        "slug": "start",
+        "nome": "Start",
+        "emoji": "🟢",
+        "cor": "#22c55e"
+      }
+    ]
+  }
+]
+```
+
+---
+
 ## 🎯 Conceitos Importantes
 
-### Status Dinâmico
+### Status Dinâmico (Ideas)
 
-O status é **calculado**, não armazenado:
+O status de apresentações é **calculado**, não armazenado:
 
 ```python
 # ✅ CORRETO
@@ -630,6 +935,24 @@ idea.status = "agendado"  # Não funciona! Status é @property
 
 ---
 
+### Status de Retrospectivas
+
+Ao contrário das Ideas, o status de Retros **É armazenado** no campo `status`:
+
+```python
+# Transições controladas por actions
+POST /api/retros/{id}/start/    # rascunho → em_andamento
+POST /api/retros/{id}/finish/   # em_andamento → concluida
+```
+
+**Regras:**
+
+- `rascunho`: Editável, participantes podem entrar/sair, items podem ser adicionados
+- `em_andamento`: Somente leitura, não pode editar retro, items só podem ser votados
+- `concluida`: Somente leitura total, nenhuma ação permitida
+
+---
+
 ### Permissões Granulares
 
 - **Editar**: Criador OR Apresentador OR Admin
@@ -645,11 +968,22 @@ Use `GET /api/ideas/{id}/permissions/` para verificar.
 **Sempre** use `.with_vote_stats()` para evitar N+1 queries:
 
 ```python
-# ✅ CORRETO
+# ✅ CORRETO - Ideas
 ideas = Idea.objects.with_vote_stats()
 
+# ✅ CORRETO - Retro Items (ORDEM IMPORTA!)
+items = RetroItem.objects.with_vote_stats().filter(retro=retro_id)
+
+# ❌ ERRADO - perde manager customizado
+items = RetroItem.objects.filter(retro=retro_id).with_vote_stats()  # AttributeError!
+```
+
+**IMPORTANTE**: Para RetroItems, SEMPRE chame `.with_vote_stats()` ANTES de `.filter()`.
+
 # ❌ ERRADO (causará múltiplas queries)
+
 ideas = Idea.objects.all()
+
 ```
 
 ---
@@ -657,6 +991,7 @@ ideas = Idea.objects.all()
 ## 📁 Estrutura
 
 ```
+
 backend/
 ├── backend/              # Configurações Django
 │   ├── settings.py
@@ -664,17 +999,17 @@ backend/
 │   └── wsgi.py
 ├── core/                 # App de autenticação
 │   ├── models/
-│   │   ├── __init__.py
+│   │   ├── **init**.py
 │   │   └── user.py      # User customizado com avatar
 │   ├── serializers/
-│   │   ├── __init__.py
+│   │   ├── **init**.py
 │   │   ├── register_serializer.py
 │   │   ├── login_serializer.py
 │   │   ├── user_profile_serializer.py
 │   │   ├── token_response_serializer.py
 │   │   └── change_password_serializer.py
 │   ├── views/
-│   │   ├── __init__.py
+│   │   ├── **init**.py
 │   │   ├── register_view.py
 │   │   ├── login_view.py
 │   │   ├── logout_view.py
@@ -686,14 +1021,14 @@ backend/
 │           └── create_superuser_from_env.py
 ├── talks/                # App principal
 │   ├── models/
-│   │   ├── __init__.py
+│   │   ├── **init**.py
 │   │   ├── idea.py      # Idea com status dinâmico
 │   │   ├── tag.py       # Tag (categorização)
 │   │   ├── vote.py      # Vote (votação)
 │   │   ├── comment.py   # Comment (aninhado)
 │   │   └── notification.py  # Notification
 │   ├── serializers/
-│   │   ├── __init__.py
+│   │   ├── **init**.py
 │   │   ├── idea_serializer.py
 │   │   ├── tag_serializer.py
 │   │   ├── vote_serializer.py
@@ -703,16 +1038,16 @@ backend/
 │   │   └── reschedule_serializer.py
 │   ├── views/
 │   │   ├── viewsets/
-│   │   │   ├── __init__.py
+│   │   │   ├── **init**.py
 │   │   │   ├── idea_viewset.py
 │   │   │   ├── tag_viewset.py
 │   │   │   ├── comment_viewset.py
 │   │   │   └── notification_viewset.py
 │   │   └── api_views/
-│   │       ├── __init__.py
+│   │       ├── **init**.py
 │   │       └── uploads_api_view.py  # Upload de imagens
 │   ├── filters/
-│   │   ├── __init__.py
+│   │   ├── **init**.py
 │   │   └── idea_filter.py
 │   ├── permissions.py   # Permissões granulares
 │   └── management/
@@ -720,6 +1055,7 @@ backend/
 │           ├── seed_data.py
 │           └── seed_timeline.py
 └── manage.py
+
 ```
 
 ---

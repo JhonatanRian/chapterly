@@ -103,25 +103,43 @@ frontend/src/
 import { ideasService } from '@/services/ideas.service';
 const idea = await ideasService.getIdea(id);
 
+import { retrosService } from '@/services/retros.service';
+const retro = await retrosService.getRetro(id);
+
 // ❌ ERRADO
 import { api } from '@/services/api';
 const idea = await api.get(`/ideas/${id}/`);
 ```
+
+**Serviços Disponíveis:**
+
+- `ideas.service.ts` - CRUD de ideias + vote/volunteer/reschedule
+- `retros.service.ts` - CRUD de retros + join/leave/start/finish/metrics
+- `auth.service.ts` - Login/register/logout/refresh
+- `comments.service.ts` - CRUD de comentários
+- `notifications.service.ts` - Listar/marcar notificações
 
 ### React Query Keys
 
 Estrutura consistente para cache:
 
 ```typescript
-// Listas
+// Ideas
 ["ideas", filters]           // Lista com filtros
 ["ideas", "timeline"]        // Timeline
-["comments", ideaId]         // Comentários de uma ideia
-
-// Detalhes
 ["idea", ideaId]             // Ideia específica
 ["idea", ideaId, "permissions"] // Permissões da ideia
+
+// Retros
+["retros", filters]          // Lista de retros
+["retro", retroId]           // Retro específica
+["retros", "metrics", filters] // Métricas globais (admin)
+["retro-items", retroId]     // Items de uma retro
+
+// Outros
+["comments", ideaId]         // Comentários de uma ideia
 ["notifications"]            // Notificações do usuário
+["retro-templates"]          // Templates de retro
 ```
 
 ### Autenticação JWT
@@ -135,7 +153,7 @@ Veja `frontend/src/services/api.ts` (linhas 30-120).
 
 ### Status Dinâmico
 
-Status não é setável diretamente. Ele é calculado no backend:
+**Ideas**: Status não é setável diretamente. Ele é calculado no backend baseado em `data_agendada`:
 
 ```typescript
 // ✅ CORRETO - Atualizar data_agendada
@@ -143,6 +161,14 @@ await ideasService.reschedule(ideaId, newDate);
 
 // ❌ ERRADO - Não tente setar status
 idea.status = "agendado"; // Não funciona!
+```
+
+**Retros**: Status É armazenado e controlado por actions:
+
+```typescript
+// Transições controladas
+await retrosService.start(retroId);  // rascunho → em_andamento
+await retrosService.finish(retroId); // em_andamento → concluida
 ```
 
 ### Permissões
@@ -162,6 +188,8 @@ const { data: permissions } = useIdeaPermissions(ideaId);
 
 ### Páginas
 
+**Ideas:**
+
 - **Dashboard** - Visão geral, estatísticas, próximas apresentações
 - **IdeasListPage** - Lista paginada com filtros e busca
 - **IdeaDetailPage** - Detalhes, comentários, ações (votar, voluntariar)
@@ -170,7 +198,25 @@ const { data: permissions } = useIdeaPermissions(ideaId);
 - **TimelinePage** - Timeline ordenada com highlights
 - **ProfilePage** - Perfil, ideias criadas, apresentações
 
+**Retros:**
+
+- **RetrosListPage** - Lista de retrospectivas com filtros
+- **RetroDetailPage** - Quadro colaborativo com items por categoria
+- **RetroFormPage** - Criar/editar retrospectivas
+- **RetroMetricsPage** - Métricas globais (admin only)
+- **RetroTemplatesPage** - Lista de templates disponíveis
+
 ### Componentes Reutilizáveis
+
+**Common:**
+
+- **Modal** - Modal genérico
+- **ConfirmModal** - Modal de confirmação
+- **DateTimePicker** - Seletor de data/hora
+- **StatsCard** - Card de estatística (usado em dashboard/métricas)
+- **EmptyState** - Estado vazio genérico
+
+**Ideas:**
 
 - **IdeaCard** - Card de ideia (usado em listas/grid)
 - **TimelineCard** - Card para timeline (com destaque)
@@ -181,9 +227,21 @@ const { data: permissions } = useIdeaPermissions(ideaId);
 - **RichTextEditor** - Editor TipTap configurado
 - **MarkdownRenderer** - Renderizador de Markdown
 - **CommentsSection** - Seção de comentários aninhados
-- **Modal** - Modal genérico
-- **ConfirmModal** - Modal de confirmação
-- **DateTimePicker** - Seletor de data/hora
+
+**Retros:**
+
+- **RetroCard** - Card de retrospectiva
+- **RetroBoard** - Quadro colaborativo com categorias
+- **RetroItemCard** - Card de item (com votação)
+- **CategoryColumn** - Coluna de categoria no quadro
+- **ParticipantsList** - Lista de participantes
+
+**Metrics (Admin):**
+
+- **MetricsGrid** - Grid com 6 cards de métricas gerais
+- **EngagementAnalysis** - Análise de participação e tendências
+- **PatternAnalysis** - Análise de padrões (categorias, top 10)
+- **MetricsFilters** - Filtros de métricas (status, datas)
 
 ### Animações
 
