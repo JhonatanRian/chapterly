@@ -61,6 +61,23 @@ class RetroItemSerializer(serializers.ModelSerializer):
 
 
 class RetroItemCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para criação de itens de retrospectiva.
+
+    Validações:
+    - Categoria deve existir no template da retro
+    - Conteúdo não pode ser duplicado na mesma retro/categoria
+      (comparação case-insensitive, ignorando espaços extras)
+
+    Exemplo de erro de duplicata:
+    {
+        "conteudo": [
+            "Já existe um item com este conteúdo na categoria.
+             Evite duplicatas para manter a retro organizada."
+        ]
+    }
+    """
+
     class Meta:
         model = RetroItem
         fields = ["categoria", "conteudo", "ordem"]
@@ -76,4 +93,33 @@ class RetroItemCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     f"Categoria inválida. Use uma das seguintes: {', '.join(categorias_disponiveis)}"
                 )
+        return value
+
+    def validate_conteudo(self, value):
+        """
+        Valida que o conteúdo não é duplicado na mesma retro/categoria.
+        Comparação case-insensitive e ignorando espaços extras.
+        """
+        retro = self.context.get("retro")
+        categoria = self.initial_data.get("categoria")
+
+        if not retro or not categoria:
+            return value
+
+        # Normalizar conteúdo: remover espaços extras e converter para lowercase
+        conteudo_normalizado = value.strip().lower()
+
+        # Buscar itens existentes na mesma retro/categoria
+        itens_existentes = RetroItem.objects.filter(
+            retro=retro, categoria=categoria
+        ).values_list("conteudo", flat=True)
+
+        # Comparar com conteúdos normalizados
+        for item_conteudo in itens_existentes:
+            if item_conteudo.strip().lower() == conteudo_normalizado:
+                raise serializers.ValidationError(
+                    "Já existe um item com este conteúdo na categoria. "
+                    "Evite duplicatas para manter a retro organizada."
+                )
+
         return value

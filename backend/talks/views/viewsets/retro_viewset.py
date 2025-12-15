@@ -1,4 +1,3 @@
-import re
 from core.decorators import require_feature
 from django.db.models import Avg, Count, Prefetch
 from rest_framework import status, viewsets
@@ -12,6 +11,7 @@ from talks.serializers import (
     RetroCreateUpdateSerializer,
     RetroDetailSerializer,
     RetroItemCreateSerializer,
+    RetroItemSerializer,
     RetroListSerializer,
 )
 
@@ -232,7 +232,9 @@ class RetroViewSet(viewsets.ModelViewSet):
 
         if ultimas_5 and anteriores_5:
             media_ultimas = (
-                sum([r.participantes.count() for r in ultimas_5]) / 5 if ultimas_5 else 0
+                sum([r.participantes.count() for r in ultimas_5]) / 5
+                if ultimas_5
+                else 0
             )
             media_anteriores = (
                 sum([r.participantes.count() for r in anteriores_5]) / 5
@@ -249,7 +251,8 @@ class RetroViewSet(viewsets.ModelViewSet):
                 trend = "estável"
         else:
             media = (
-                sum([r.participantes.count() for r in retros_ordenadas]) / retros_ordenadas.count()
+                sum([r.participantes.count() for r in retros_ordenadas])
+                / retros_ordenadas.count()
                 if anteriores_5
                 else 0
             )

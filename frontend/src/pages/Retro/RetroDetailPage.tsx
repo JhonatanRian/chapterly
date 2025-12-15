@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { retrosService } from "../../services/retros.service";
 import type { RetroItemFormData, RetroStatus } from "../../types";
+import { extractErrorMessage } from "@/utils/errorHandlers";
 import {
   ArrowLeft,
   Calendar,
@@ -32,6 +33,7 @@ const RetroDetailPage = () => {
   const { user } = useAuthStore();
 
   const [categoryInputs, setCategoryInputs] = useState<Record<string, string>>({});
+  const [highlightedItemId, setHighlightedItemId] = useState<number | null>(null);
 
   // Carregar retro com polling para atualização em tempo real
   const { data: retro, isLoading } = useQuery({
@@ -122,11 +124,67 @@ const RetroDetailPage = () => {
     }
   };
 
+  /**
+   * Valida se o conteúdo é duplicado na mesma categoria.
+   * Comparação case-insensitive e ignorando espaços extras.
+   */
+  const checkDuplicate = (categoria: string, content: string): boolean => {
+    if (!retro) return false;
+
+    const normalizedContent = content.trim().toLowerCase();
+    const existingItems = retro.items
+      .filter((item) => item.categoria === categoria)
+      .map((item) => item.conteudo.trim().toLowerCase());
+
+    return existingItems.includes(normalizedContent);
+  };
+
+  /**
+   * Encontra o ID do item duplicado na mesma categoria.
+   * Retorna null se não encontrar.
+   */
+  const findDuplicateItem = (categoria: string, content: string): number | null => {
+    if (!retro) return null;
+
+    const normalizedContent = content.trim().toLowerCase();
+    const duplicateItem = retro.items.find(
+      (item) =>
+        item.categoria === categoria &&
+        item.conteudo.trim().toLowerCase() === normalizedContent
+    );
+
+    return duplicateItem?.id || null;
+  };
+
   const handleAddItem = (categoria: string) => {
     const content = categoryInputs[categoria]?.trim();
     if (!content) {
       toast.error("Digite algo antes de adicionar");
       return;
+    }
+
+    // ✨ VALIDAÇÃO PREVENTIVA: Verificar duplicata ANTES de enviar
+    const duplicateId = findDuplicateItem(categoria, content);
+    if (duplicateId) {
+      toast.error(
+        "Este item já existe! Veja o card destacado abaixo.",
+        {
+          duration: 5000,
+          icon: "⚠️",
+        }
+      );
+
+      // Destacar item por 3 segundos
+      setHighlightedItemId(duplicateId);
+      setTimeout(() => setHighlightedItemId(null), 3000);
+
+      // Scroll automático até o item (se fora da tela)
+      const element = document.getElementById(`item-${duplicateId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      return; // Não envia request
     }
     
     // Criar item temporário para UI optimista
@@ -186,9 +244,19 @@ const RetroDetailPage = () => {
               items: oldData.items.filter((item: any) => item.id !== tempItem.id),
             };
           });
-          
-          const errorMsg = error.response?.data?.detail || "Erro ao adicionar item";
-          toast.error(errorMsg);
+
+          // Restaurar input para o usuário corrigir
+          setCategoryInputs((prev) => ({ ...prev, [categoria]: content }));
+
+          // Extrair mensagem de erro específica da API
+          const errorMsg = extractErrorMessage(error);
+
+          // Exibir toast com duração aumentada para erros de duplicata
+          toast.error(errorMsg, {
+            duration: 5000, // 5 segundos para o usuário ler a mensagem
+            icon: "⚠️",
+          });
+
           console.error("Erro ao adicionar item:", error);
         }
       }
@@ -463,7 +531,18 @@ const RetroDetailPage = () => {
                   itemsByCategory[category.slug].map((item) => (
                     <div
                       key={item.id}
-                      className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600 animate-in fade-in slide-in-from-top-2 duration-500"
+                      id={`item-${item.id}`}
+                      className={`
+                        bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 
+                        border border-gray-200 dark:border-gray-600 
+                        animate-in fade-in slide-in-from-top-2 duration-500
+                        transition-all
+                        ${
+                          highlightedItemId === item.id
+                            ? "ring-2 ring-yellow-400 dark:ring-yellow-500 bg-yellow-50 dark:bg-yellow-900/20"
+                            : ""
+                        }
+                      `}
                     >
                       <p className="text-sm text-gray-800 dark:text-gray-200 mb-2">{item.conteudo}</p>
                       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
