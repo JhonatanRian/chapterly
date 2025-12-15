@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { comparisonService } from "@/services/retros.service";
 import type { RetroComparison } from "@/types";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus, AlertCircle } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { MainLayout, Button } from "@/components";
 import { AnimatedPage } from "@/components/animations";
 import RetroSelector from "@/components/retro/RetroSelector";
@@ -15,17 +15,20 @@ const RetroComparisonPage = () => {
   const navigate = useNavigate();
   const [selectedRetroIds, setSelectedRetroIds] = useState<number[]>([]);
   const [comparisonData, setComparisonData] = useState<RetroComparison | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Mutation para comparar
   const compareMutation = useMutation({
     mutationFn: (retroIds: number[]) => comparisonService.compare(retroIds),
     onSuccess: (data) => {
       setComparisonData(data);
+      setErrorMessage(null);
       toast.success("Comparação gerada com sucesso!");
     },
     onError: (error: any) => {
       const errorMsg =
         error.response?.data?.detail || "Erro ao comparar retrospectivas";
+      setErrorMessage(errorMsg);
       toast.error(errorMsg);
       console.error("Erro na comparação:", error);
     },
@@ -36,6 +39,7 @@ const RetroComparisonPage = () => {
       toast.error("Selecione pelo menos 2 retrospectivas");
       return;
     }
+    setErrorMessage(null);
     compareMutation.mutate(selectedRetroIds);
   };
 
@@ -131,9 +135,14 @@ const RetroComparisonPage = () => {
             {/* Action Items Tracking */}
             {comparisonData.action_items_tracking && (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  📋 Action Items Tracking
-                </h3>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    📋 Action Items Tracking
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Comparação entre a penúltima e última retrospectiva (Sprint {comparisonData.retros_comparadas.length - 1} → Sprint {comparisonData.retros_comparadas.length})
+                  </p>
+                </div>
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -220,10 +229,14 @@ const RetroComparisonPage = () => {
             {/* Problemas Recorrentes */}
             {comparisonData.problemas_recorrentes.total_recorrencias > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  🔁 Problemas Recorrentes (
-                  {comparisonData.problemas_recorrentes.total_recorrencias})
-                </h3>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    🔁 Problemas Recorrentes ({comparisonData.problemas_recorrentes.total_recorrencias})
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Itens que aparecem em múltiplas retrospectivas (não incluem action items)
+                  </p>
+                </div>
 
                 <div className="space-y-3">
                   {comparisonData.problemas_recorrentes.itens_recorrentes.map(

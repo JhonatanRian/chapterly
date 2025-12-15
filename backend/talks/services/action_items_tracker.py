@@ -42,17 +42,13 @@ class ActionItemsTracker:
         items_anteriores = list(
             RetroItem.objects.filter(
                 retro_id=retro_anterior_id, categoria=action_items_slug
-            )
-            .select_related("autor", "retro")
-            .values("id", "conteudo", "autor__username", "retro_id")
+            ).values("id", "conteudo", "autor__username", "retro_id")
         )
 
         items_atuais = list(
             RetroItem.objects.filter(
                 retro_id=retro_atual_id, categoria=action_items_slug
-            )
-            .select_related("autor", "retro")
-            .values("id", "conteudo", "autor__username", "retro_id")
+            ).values("id", "conteudo", "autor__username", "retro_id")
         )
 
         # Tracking
@@ -60,8 +56,24 @@ class ActionItemsTracker:
         recorrentes = []
         novos = []
 
+        # Deduplicar items por ID (SQLite retorna duplicatas com .values())
+        seen_ids = set()
+        unique_items_anteriores = []
+        unique_items_atuais = []
+
+        for item in items_anteriores:
+            if item["id"] not in seen_ids:
+                unique_items_anteriores.append(item)
+                seen_ids.add(item["id"])
+
+        seen_ids.clear()
+        for item in items_atuais:
+            if item["id"] not in seen_ids:
+                unique_items_atuais.append(item)
+                seen_ids.add(item["id"])
+
         # Processar items anteriores
-        for item_ant in items_anteriores:
+        for item_ant in unique_items_anteriores:
             similar_items = TextSimilarityService.find_similar_items(
                 item_ant["conteudo"],
                 items_atuais,
@@ -94,7 +106,7 @@ class ActionItemsTracker:
 
         # Items novos (não existiam na anterior)
         ids_recorrentes = {r["id"] for r in recorrentes}
-        for item_atual in items_atuais:
+        for item_atual in unique_items_atuais:
             # Verificar se é similar a algum item anterior
             similar_to_previous = TextSimilarityService.find_similar_items(
                 item_atual["conteudo"],

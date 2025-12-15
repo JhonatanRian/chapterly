@@ -404,6 +404,25 @@ class RetroViewSet(viewsets.ModelViewSet):
             .order_by("data")
         )
 
+        # Validar que todas as retros usam o MESMO template
+        templates = set(r.template_id for r in retros if r.template_id)
+        if len(templates) > 1:
+            return Response(
+                {
+                    "detail": "Não é possível comparar retrospectivas de templates diferentes. "
+                    "Todas as retrospectivas selecionadas devem usar o mesmo template."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(templates) == 0:
+            return Response(
+                {
+                    "detail": "Nenhuma das retrospectivas selecionadas tem um template associado."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # Verificar permissões: usuário deve ser participante de pelo menos uma retro
         user_retros = retros.filter(participantes=request.user)
         if not user_retros.exists() and not request.user.is_staff:
