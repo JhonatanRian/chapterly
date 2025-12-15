@@ -347,3 +347,67 @@ export interface VoteItemResponse {
   vote_count: number;
 }
 
+// ========== COMPARAÇÃO DE RETROSPECTIVAS ==========
+
+export interface RetroComparisonRequest {
+  retro_ids: number[];
+}
+
+export interface RetroSummary {
+  id: number;
+  titulo: string;
+  data: string;
+  status: RetroStatus;
+  autor_username: string;
+}
+
+export interface ActionItemDetail {
+  id: number;
+  conteudo: string;
+  autor_username: string;
+  status: "resolvido" | "recorrente" | "novo" | "nao_action_item";
+  similaridade?: number;
+  retro_origem: number;
+}
+
+export interface ActionItemsTracking {
+  total_action_items_anterior: number;
+  resolvidos: number;
+  recorrentes: number;
+  novos: number;
+  taxa_resolucao: number;
+  detalhes: ActionItemDetail[];
+}
+
+export interface RecurrentItem {
+  conteudo: string;
+  categoria: string;
+  frequencia: number;
+  retros: number[];
+  similaridade_media: number;
+}
+
+export interface RecurrenceAnalysis {
+  total_recorrencias: number;
+  por_categoria: Record<string, number>;
+  itens_recorrentes: RecurrentItem[];
+}
+
+export interface CategoryTendency {
+  categoria: string;
+  categoria_nome: string;
+  tendencia: "crescente" | "estável" | "decrescente" | "insuficiente";
+  variacao_percentual: number;
+  valores: number[];
+}
+
+export interface RetroComparison {
+  retros_comparadas: RetroSummary[];
+  action_items_tracking: ActionItemsTracking;
+  problemas_recorrentes: RecurrenceAnalysis;
+  tendencias_categorias: Record<string, CategoryTendency>;
+  periodo_analise: {
+    data_inicial: string;
+    data_final: string;
+  };
+}

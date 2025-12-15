@@ -17,6 +17,7 @@ import type {
   VoteItemResponse,
   PaginatedResponse,
   MessageResponse,
+  RetroComparison,
 } from "../types";
 
 /**
@@ -31,6 +32,7 @@ const ENDPOINTS = {
   JOIN: (id: number) => `/retros/${id}/join/`,
   LEAVE: (id: number) => `/retros/${id}/leave/`,
   METRICS: "/retros/metrics/",
+  COMPARE: "/retros/compare/",
   TEMPLATES: "/retro-templates/",
   TEMPLATE_DETAIL: (id: number) => `/retro-templates/${id}/`,
   TEMPLATE_SET_DEFAULT: (id: number) => `/retro-templates/${id}/set_default/`,
@@ -206,4 +208,24 @@ export const retroTemplatesService = {
   },
 };
 
+/**
+ * Métodos de Comparação de Retros
+ */
+const comparisonService = {
+  /**
+   * Compara múltiplas retrospectivas
+   * @param retroIds - IDs das retros a comparar (mín 2, máx 10)
+   */
+  async compare(retroIds: number[]): Promise<RetroComparison> {
+    const response = await api.post<RetroComparison>(
+      ENDPOINTS.COMPARE,
+      { retro_ids: retroIds }
+    );
+    return response.data;
+  },
+};
+
 export default retrosService;
+
+// Re-export comparison service
+export { comparisonService };

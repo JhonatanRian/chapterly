@@ -37,6 +37,7 @@ import {
   RetroTemplatesPage,
   RetroTemplateFormPage,
   RetroMetricsPage,
+  RetroComparisonPage,
 } from "@/pages/Retro";
 
 /**
@@ -205,6 +206,16 @@ function App() {
               <ProtectedRoute>
                 <FeatureProtectedRoute feature="retro">
                   <RetroMetricsPage />
+                </FeatureProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/retros/compare"
+            element={
+              <ProtectedRoute>
+                <FeatureProtectedRoute feature="retro">
+                  <RetroComparisonPage />
                 </FeatureProtectedRoute>
               </ProtectedRoute>
             }

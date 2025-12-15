@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { retrosService } from "../../services/retros.service";
 import type { RetroFilters, RetroStatus } from "../../types";
-import { Calendar, Users, MessageSquare, ThumbsUp, Plus, Filter } from "lucide-react";
+import { Calendar, Users, MessageSquare, ThumbsUp, Plus, Filter, BarChart3 } from "lucide-react";
 import {
   MainLayout,
   FAB,
+  Button,
   EmptyState,
   SkeletonGrid,
 } from "@/components";
@@ -80,6 +81,18 @@ const RetroListPage = () => {
           <p className="text-gray-600 dark:text-gray-400">
             Gerencie e participe de retrospectivas do time
           </p>
+        </div>
+
+        {/* Header Actions */}
+        <div className="flex items-center gap-3 mb-6">
+          <Button
+            onClick={() => navigate("/retros/compare")}
+            variant="secondary"
+            className="flex items-center gap-2"
+          >
+            <BarChart3 size={18} />
+            Comparar Retros
+          </Button>
         </div>
 
         {/* Filters */}

@@ -14,6 +14,13 @@ from talks.serializers import (
     RetroItemSerializer,
     RetroListSerializer,
 )
+from talks.serializers.retro_comparison_serializer import (
+    RetroComparisonRequestSerializer,
+    RetroComparisonResponseSerializer,
+)
+from talks.services.action_items_tracker import ActionItemsTracker
+from talks.services.recurrence_analyzer import RecurrenceAnalyzer
+from talks.services.tendency_analyzer import TendencyAnalyzer
 
 
 class RetroViewSet(viewsets.ModelViewSet):
@@ -362,3 +369,71 @@ class RetroViewSet(viewsets.ModelViewSet):
             response_data, context={"request": request}
         )
         return Response(serializer.data)
+
+    @action(detail=False, methods=["post"])
+    @permission_classes([IsAuthenticated])
+    @require_feature("retro_enabled")
+    def compare(self, request):
+        """
+        Compara múltiplas retrospectivas identificando action items resolvidos,
+        problemas recorrentes e tendências por categoria.
+
+        Body:
+        {
+            "retro_ids": [1, 2, 3]
+        }
+
+        Returns:
+        {
+            "retros_comparadas": [...],
+            "action_items_tracking": {...},
+            "problemas_recorrentes": {...},
+            "tendencias_categorias": {...}
+        }
+        """
+        # Validar request
+        request_serializer = RetroComparisonRequestSerializer(data=request.data)
+        request_serializer.is_valid(raise_exception=True)
+
+        retro_ids = request_serializer.validated_data["retro_ids"]
+
+        # Buscar retros em ordem cronológica
+        retros = (
+            Retro.objects.filter(id__in=retro_ids)
+            .select_related("autor", "template")
+            .order_by("data")
+        )
+
+        # Verificar permissões: usuário deve ser participante de pelo menos uma retro
+        user_retros = retros.filter(participantes=request.user)
+        if not user_retros.exists() and not request.user.is_staff:
+            return Response(
+                {
+                    "detail": "Você deve ser participante de pelo menos uma das retrospectivas para compará-las."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # IDs em ordem cronológica
+        retros_ordenadas = list(retros.values_list("id", flat=True))
+
+        # Análises
+        action_items_tracking = ActionItemsTracker.analyze(retros_ordenadas)
+        problemas_recorrentes = RecurrenceAnalyzer.analyze(retros_ordenadas)
+        tendencias_categorias = TendencyAnalyzer.analyze(retros_ordenadas)
+
+        # Montar response
+        response_data = {
+            "retros_comparadas": retros,
+            "action_items_tracking": action_items_tracking,
+            "problemas_recorrentes": problemas_recorrentes,
+            "tendencias_categorias": tendencias_categorias,
+            "periodo_analise": {
+                "data_inicial": retros.first().data.isoformat() if retros else None,
+                "data_final": retros.last().data.isoformat() if retros else None,
+            },
+        }
+
+        # Serializar response
+        response_serializer = RetroComparisonResponseSerializer(response_data)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
