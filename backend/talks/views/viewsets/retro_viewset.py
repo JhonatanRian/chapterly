@@ -31,7 +31,7 @@ class RetroViewSet(viewsets.ModelViewSet):
                 "items",
                 queryset=RetroItem.objects.select_related("autor")
                 .prefetch_related("votes")
-                .order_by("ordem", "id"),
+                .order_by("-ordem", "-id"),
             ),
         )
 
